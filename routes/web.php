@@ -1,5 +1,9 @@
 <?php
 
+use App\Models\SuperappDepartment;
+use App\Models\SuperappDivision;
+use App\Models\SuperappEmployee;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'pages::auth.login')->name('login')->middleware('guest');
@@ -15,5 +19,42 @@ Route::middleware(['auth'])->group(function () {
     Route::livewire('dashboard/keys/vehicle', 'pages::dashboard.vehicle-keys')->name('dashboard.keys.vehicle');
     Route::livewire('dashboard/keys/facility', 'pages::dashboard.facility-keys')->name('dashboard.keys.facility');
 });
+
+Route::get('/employees/api', function (Request $request) {
+    $search = $request->query('search');
+
+    return SuperappEmployee::where('is_delete', '=', false)
+        ->where('is_active', '=', true)
+        ->where('plant_id', '=', 1)
+        ->when($search, function ($query) use ($search) {
+            $query->whereRaw(
+                'LOWER(fullname) LIKE ?', 
+                ['%' . strtolower($search) . '%']
+            );
+        })
+        ->orderBy('fullname')
+        ->with([
+            'department:id,name',
+            'division:id,name'
+        ])
+        ->get([
+            'id',
+            'fullname',
+            'username',
+            'departement_id',
+            'division_id',
+            'employee_id',
+            'nik',
+            'photo'
+        ]);
+})->middleware('auth');
+
+Route::get('/departments/api', function() {
+    return SuperappDepartment::all();
+})->middleware('auth');
+
+Route::get('/divisions/api', function() {
+    return SuperappDivision::all();
+})->middleware('auth');
 
 require __DIR__.'/settings.php';

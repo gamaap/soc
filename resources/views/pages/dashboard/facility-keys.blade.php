@@ -117,7 +117,14 @@ new class extends Component
             return collect();
         }
 
+        $today = today();
         return KeyBorrowing::where('facility_key_id', $this->keyId)
+            ->where(function($q) use ($today) {
+                $q->whereDate('borrowed_at', $today)
+                  ->orWhere(function($sub) use ($today) {
+                      $sub->whereDate('borrowed_at', '<', $today)->whereNull('returned_at');
+                  });
+            })
             ->latest()
             ->get();
     }
@@ -253,8 +260,10 @@ new class extends Component
                     <flux:heading size="lg">Borrow Key</flux:heading>
                     <flux:text class="mt-2">Record key for borrowing details.</flux:text>
                 </div>
-                <flux:input wire:model="borrower_name" label="Borrower Name" placeholder="John" />
-                <flux:input wire:model="borrower_department" label="Department" placeholder="Information Technology" />
+                <div class="autoComplete_wrapper" wire:ignore>
+                    <flux:input wire:model="borrower_name" id="borrower-name-facility" label="Borrower Name" autocomplete="off" />
+                </div>
+                <flux:input wire:model="borrower_department" label="Department" readonly />
                 <div class="flex">
                     <flux:spacer />
                     <flux:button type="submit" variant="primary" class="w-full">Record Borrow</flux:button>
@@ -270,8 +279,10 @@ new class extends Component
                     <flux:heading size="lg">Return Key</flux:heading>
                     <flux:text class="mt-2">Record key return details.</flux:text>
                 </div>
-                <flux:input wire:model="returned_name" label="Return Person Name" placeholder="John" />
-                <flux:input wire:model="returned_department" label="Department" placeholder="Information Technology" />
+                <div class="autoComplete_wrapper" wire:ignore>
+                    <flux:input wire:model="returned_name" id="returned-name-facility" label="Return Person Name" autocomplete="off" />
+                </div>
+                <flux:input wire:model="returned_department" label="Department" readonly />
                 <div class="flex">
                     <flux:spacer />
                     <flux:button type="submit" variant="primary" class="w-full">Record Return</flux:button>
@@ -381,3 +392,74 @@ new class extends Component
     </flux:modal>
     
 </x-pages::dashboard.keys>
+
+<script src="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10.2.9/dist/autoComplete.min.js"></script>
+<script>
+    const autoCompleteJSBorrower = new autoComplete({
+        selector: "#borrower-name-facility",
+        data: {
+            src: async (query) => {
+                try {
+                    const source = await fetch(`/employees/api?search=${encodeURIComponent(query)}`);
+                    const data = await source.json();
+
+                    return data;
+                } catch (error) {
+                    return error;
+                }
+            },
+            keys: ["fullname"],
+        },
+        resultsList: {
+            maxResults: 50
+        },
+        resultItem: {
+            highlight: true
+        },
+        events: {
+            input: {
+                selection: (event) => {
+                    const selection = event.detail.selection.value;
+
+                    autoCompleteJSBorrower.input.value = selection.fullname;
+                    $wire.set('borrower_name', selection.fullname);
+                    $wire.set('borrower_department', selection.department?.name ?? '');
+                }
+            }
+        }
+    });
+
+    const autoCompleteJSReturned = new autoComplete({
+        selector: "#returned-name-facility",
+        data: {
+            src: async (query) => {
+                try {
+                    const source = await fetch(`/employees/api?search=${encodeURIComponent(query)}`);
+                    const data = await source.json();
+
+                    return data;
+                } catch (error) {
+                    return error;
+                }
+            },
+            keys: ["fullname"],
+        },
+        resultsList: {
+            maxResults: 50
+        },
+        resultItem: {
+            highlight: true
+        },
+        events: {
+            input: {
+                selection: (event) => {
+                    const selection = event.detail.selection.value;
+
+                    autoCompleteJSReturned.input.value = selection.fullname;
+                    $wire.set('returned_name', selection.fullname);
+                    $wire.set('returned_department', selection.department?.name ?? '');
+                }
+            }
+        }
+    });
+</script>
