@@ -57,6 +57,13 @@ new class extends Component
             'borrower_department' => 'required|string|min:3'
         ]);
 
+        $key = VehicleKey::findOrFail($this->keyId);
+
+        if ($key->available <= 0) {
+            $this->addError('borrower_name', 'No available keys can be borrowed at the moment.');
+            return;
+        }
+
         KeyBorrowing::create([
             'vehicle_key_id' => $this->keyId,
             'borrower_name' => $this->borrower_name,
@@ -184,30 +191,34 @@ new class extends Component
                     <flux:table.cell>{{ $key->total_keys }}</flux:table.cell>
                     <flux:table.cell>{{ $key->available }}</flux:table.cell>
                     <flux:table.cell>
-                        @if ($key->available !== 0)
+                        @if ($key->available === $key->total_keys)
                             <flux:badge size="sm" color="green">Available</flux:badge>
-                        @else
+                        @elseif ($key->available === 0)
                             <flux:badge size="sm" color="red">All Borrowed</flux:badge>
+                        @else
+                            <flux:badge size="sm" color="yellow">Partially Borrowed</flux:badge>
                         @endif
                     </flux:table.cell>
-                    <flux:table.cell>
-                        @if ($key->available == $key->total_keys)
+                    <flux:table.cell class="flex gap-2" class="flex gap-2">
+                        @if ($key->available > 0)
                             <flux:button 
                                 icon="hand-helping" 
                                 size="sm"
                                 wire:click="openBorrowModal({{ $key->id }})"
                                 wire:target="openBorrowModal({{ $key->id }})"
-                                >
-                            Borrow
-                        </flux:button>
-                        @else
+                            >
+                                Borrow
+                            </flux:button>
+                        @endif
+
+                        @if ($key->available < $key->total_keys)
                             <flux:button 
                                 icon="undo-2" 
                                 size="sm"
                                 variant="primary"
                                 wire:click="openReturnModal({{ $key->id }})"
                                 wire:target="openReturnModal({{ $key->id }})"
-                                >
+                            >
                                 Return
                             </flux:button>
                         @endif

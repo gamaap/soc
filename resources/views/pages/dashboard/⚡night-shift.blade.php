@@ -105,7 +105,7 @@ new class extends Component
             <div class="flex flex-col md:flex-row gap-6 items-center mt-4">
                 <div class="relative flex-1 md:w-1/2">
                     <img
-                        src="{{ $photo ?: 'https://placehold.co/300' }}"
+                        src="{{ $photo ?: asset('img/avatar-default.png') }}"
                         onerror="this.onerror=null; this.src='https://placehold.co/300';"
                         alt="Employee photo"
                         class="w-full h-auto rounded-xl object-cover"
@@ -120,7 +120,7 @@ new class extends Component
                     @endif
                 </div>
                 <div class="w-full md:w-1/2 flex-6 flex-col gap-4">
-                    <form wire:submit.prevent="checkIn" action="" class="grid grid-cols-12 gap-4 items-end flex-1">
+                    <form wire:submit.prevent="checkIn" action="" class="grid grid-cols-12 gap-2 items-end flex-1">
                         <div class="col-span-12">
                             <flux:input id="scan-card-night-shift" wire:model.live="card_number" :label="__('System ID')" type="text" placeholder="SCAN HERE" autocomplete="off" autofocus />
                         </div>

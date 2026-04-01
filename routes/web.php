@@ -49,6 +49,27 @@ Route::get('/employees/api', function (Request $request) {
         ]);
 })->middleware('auth');
 
+Route::get('/employee-master/api', function (Request $request) {
+    $search = $request->query('search');
+
+    $models = App\Models\EmployeeMasterPass::query()
+        ->when($search, function ($query) use ($search) {
+            $query->where(function ($sub) use ($search) {
+                $sub->where('employee_name', 'ILIKE', "%{$search}%")
+                    ->orWhere('license_plate', 'ILIKE', "%{$search}%");
+            });
+        })
+        ->get();
+
+    return $models->groupBy('employee_name')->map(function ($group, $name) {
+        return [
+            'employee_name' => $name,
+            'department' => $group->first()->department,
+            'license_plates' => $group->pluck('license_plate')->unique()->values()->toArray(),
+        ];
+    })->values();
+})->middleware('auth');
+
 Route::get('/departments/api', function() {
     return SuperappDepartment::all();
 })->middleware('auth');

@@ -38,6 +38,7 @@ new class extends Component
             $this->employee = '';
             $this->department = '';
             $this->photo = '';
+
             session()->flash('error', 'Employee not found for this card number.');
         }
 
@@ -48,7 +49,7 @@ new class extends Component
     {
         $validated = $this->validate([
             'employee' => 'required|string|min:3|max:255',
-            'department' => 'required|string|min:3'
+            'department' => 'nullable|string|min:3'
         ]);
 
         $arrival = Carbon::now();
@@ -92,10 +93,10 @@ new class extends Component
             <div class="flex flex-col md:flex-row gap-6 items-center mt-4">
                 <div class="relative flex-1 md:w-1/2">
                     <img
-                        src="{{ $photo ?: 'https://placehold.co/300' }}"
+                        src="{{ $photo ?: asset('img/avatar-default.png') }}"
                         onerror="this.onerror=null; this.src='https://placehold.co/300';"
                         alt="Employee photo"
-                        class="w-full h-auto rounded-xl object-cover"
+                        class="w-full h-auto rounded-xl object-cover border border-accent/20"
                     >
 
                     @if ($photoLoading)
@@ -114,11 +115,11 @@ new class extends Component
                         </div>
                         <div class="col-span-4">
                             <div class="autoComplete_wrapper" wire:ignore>
-                                <flux:input id="employee-name-late" wire:model="employee" :label="__('Employee')" type="text" required autocomplete="off" />
+                                <flux:input id="employee-name-late" wire:model="employee" :label="__('Employee')" type="text" autocomplete="off" />
                             </div>
                         </div>
                         <div class="col-span-4">
-                            <flux:input id="department" wire:model="department" :label="__('Department')" type="text" />
+                            <flux:input id="department" wire:model="department" :label="__('Department')" type="text" autocomplete="off" />
                         </div>
                         <div class="col-span-4">
                             <flux:button variant="primary" class="w-full" type="submit" :disabled="$photoLoading">
@@ -127,7 +128,7 @@ new class extends Component
                         </div>
                     </form>
 
-                    @if (session()->has('error'))
+                    @if(session('error'))
                         <flux:error class="mt-4">{{ session('error') }}</flux:error>
                     @endif
                 </div>
@@ -144,9 +145,9 @@ new class extends Component
                     <flux:table.column>Date</flux:table.column>
                     <flux:table.column>Employee</flux:table.column>
                     <flux:table.column>Department</flux:table.column>
-                    <flux:table.column>Standard Time</flux:table.column>
+                    {{-- <flux:table.column>Standard Time</flux:table.column> --}}
                     <flux:table.column>Actual Arrival</flux:table.column>
-                    <flux:table.column>Minutes Late</flux:table.column>
+                    {{-- <flux:table.column>Minutes Late</flux:table.column> --}}
                 </flux:table.columns>
 
                 <flux:table.rows>
@@ -158,11 +159,11 @@ new class extends Component
                             <flux:table.cell>{{ $late->formatted_date }}</flux:table.cell>
                             <flux:table.cell>{{ $late->name }}</flux:table.cell>
                             <flux:table.cell>{{ $late->department }}</flux:table.cell>
-                            <flux:table.cell>08.00</flux:table.cell>
+                            {{-- <flux:table.cell>08.00</flux:table.cell> --}}
                             <flux:table.cell>{{ $late->actual_arrival }}</flux:table.cell>
-                            <flux:table.cell>
+                            {{-- <flux:table.cell>
                                 <flux:badge color="red" size="sm" inset="top bottom">{{ $late->minutes_late }} minutes</flux:badge>
-                            </flux:table.cell>
+                            </flux:table.cell> --}}
                         </flux:table.row>
                     @empty
                         <flux:table.row>

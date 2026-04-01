@@ -92,10 +92,10 @@ new class extends Component
             <div class="flex flex-col md:flex-row gap-6 items-center mt-4">
                 <div class="relative flex-1 md:w-1/2">
                     <img
-                        src="{{ $photo ?: 'https://placehold.co/300' }}"
+                        src="{{ $photo ?: asset('img/avatar-default.png') }}"
                         onerror="this.onerror=null; this.src='https://placehold.co/300';"
                         alt="Employee photo"
-                        class="w-full h-auto rounded-xl object-cover"
+                        class="w-full h-auto rounded-xl object-cover border border-accent/20"
                     >
 
                     @if ($photoLoading)
@@ -113,7 +113,7 @@ new class extends Component
                         </div>
                         <div class="col-span-4">
                             <div class="autoComplete_wrapper" wire:ignore>
-                                <flux:input wire:model="employee" id="employee-name-break" :label="__('Employee')" type="text" required autocomplete="off" autofocus />
+                                <flux:input wire:model="employee" id="employee-name-break" :label="__('Employee')" type="text" required autocomplete="off" />
                             </div>
                         </div>
                         <div class="col-span-4">
@@ -144,9 +144,9 @@ new class extends Component
                     <flux:table.column>Date</flux:table.column>
                     <flux:table.column>Employee</flux:table.column>
                     <flux:table.column>Department</flux:table.column>
-                    <flux:table.column>Standard Time</flux:table.column>
+                    {{-- <flux:table.column>Standard Time</flux:table.column> --}}
                     <flux:table.column>Actual Return</flux:table.column>
-                    <flux:table.column>Minutes Late</flux:table.column>
+                    {{-- <flux:table.column>Minutes Late</flux:table.column> --}}
                 </flux:table.columns>
 
                 <flux:table.rows>
@@ -158,11 +158,11 @@ new class extends Component
                             <flux:table.cell>{{ $break->formatted_date }}</flux:table.cell>
                             <flux:table.cell>{{ $break->name }}</flux:table.cell>
                             <flux:table.cell>{{ $break->department }}</flux:table.cell>
-                            <flux:table.cell>13.00</flux:table.cell>
+                            {{-- <flux:table.cell>13.00</flux:table.cell> --}}
                             <flux:table.cell>{{ $break->actual_return }}</flux:table.cell>
-                            <flux:table.cell>
+                            {{-- <flux:table.cell>
                                 <flux:badge color="red" size="sm" inset="top bottom">{{ $break->minutes_late }} minutes</flux:badge>
-                            </flux:table.cell>
+                            </flux:table.cell> --}}
                         </flux:table.row>
                     @empty
                         <flux:table.row>
