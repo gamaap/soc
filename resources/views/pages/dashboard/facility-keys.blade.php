@@ -117,9 +117,6 @@ new class extends Component
             return collect();
         }
 
-<<<<<<< HEAD
-        return KeyBorrowing::where('facility_key_id', $this->keyId)
-=======
         $today = today();
         return KeyBorrowing::where('facility_key_id', $this->keyId)
             ->where(function($q) use ($today) {
@@ -128,7 +125,6 @@ new class extends Component
                       $sub->whereDate('borrowed_at', '<', $today)->whereNull('returned_at');
                   });
             })
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
             ->latest()
             ->get();
     }
@@ -264,15 +260,10 @@ new class extends Component
                     <flux:heading size="lg">Borrow Key</flux:heading>
                     <flux:text class="mt-2">Record key for borrowing details.</flux:text>
                 </div>
-<<<<<<< HEAD
-                <flux:input wire:model="borrower_name" label="Borrower Name" placeholder="John" />
-                <flux:input wire:model="borrower_department" label="Department" placeholder="Information Technology" />
-=======
                 <div class="autoComplete_wrapper" wire:ignore>
                     <flux:input wire:model="borrower_name" id="borrower-name-facility" label="Borrower Name" autocomplete="off" />
                 </div>
                 <flux:input wire:model="borrower_department" label="Department" readonly />
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
                 <div class="flex">
                     <flux:spacer />
                     <flux:button type="submit" variant="primary" class="w-full">Record Borrow</flux:button>
@@ -288,15 +279,10 @@ new class extends Component
                     <flux:heading size="lg">Return Key</flux:heading>
                     <flux:text class="mt-2">Record key return details.</flux:text>
                 </div>
-<<<<<<< HEAD
-                <flux:input wire:model="returned_name" label="Return Person Name" placeholder="John" />
-                <flux:input wire:model="returned_department" label="Department" placeholder="Information Technology" />
-=======
                 <div class="autoComplete_wrapper" wire:ignore>
                     <flux:input wire:model="returned_name" id="returned-name-facility" label="Return Person Name" autocomplete="off" />
                 </div>
                 <flux:input wire:model="returned_department" label="Department" readonly />
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
                 <div class="flex">
                     <flux:spacer />
                     <flux:button type="submit" variant="primary" class="w-full">Record Return</flux:button>
@@ -405,9 +391,6 @@ new class extends Component
         </div>
     </flux:modal>
     
-<<<<<<< HEAD
-</x-pages::dashboard.keys>
-=======
 </x-pages::dashboard.keys>
 
 <script src="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10.2.9/dist/autoComplete.min.js"></script>
@@ -480,4 +463,3 @@ new class extends Component
         }
     });
 </script>
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24

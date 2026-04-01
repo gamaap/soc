@@ -1,12 +1,9 @@
 <?php
 
-<<<<<<< HEAD
-=======
 use App\Models\SuperappDepartment;
 use App\Models\SuperappDivision;
 use App\Models\SuperappEmployee;
 use Illuminate\Http\Request;
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'pages::auth.login')->name('login')->middleware('guest');
@@ -23,9 +20,6 @@ Route::middleware(['auth'])->group(function () {
     Route::livewire('dashboard/keys/facility', 'pages::dashboard.facility-keys')->name('dashboard.keys.facility');
 });
 
-<<<<<<< HEAD
-require __DIR__.'/settings.php';
-=======
 Route::get('/employees/api', function (Request $request) {
     $search = $request->query('search');
 
@@ -85,4 +79,3 @@ Route::get('/divisions/api', function() {
 })->middleware('auth');
 
 require __DIR__.'/settings.php';
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24

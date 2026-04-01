@@ -56,9 +56,6 @@ new class extends Component
     #[Computed]
     public function visitors()
     {
-<<<<<<< HEAD
-        return Visitor::latest()->get();
-=======
         $today = today();
         return Visitor::where(function($q) use ($today) {
             $q->whereDate('date', $today)
@@ -66,7 +63,6 @@ new class extends Component
                   $sub->whereDate('date', '<', $today)->whereNull('exit_time');
               });
         })->latest()->get();
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
     }
 
     #[Computed]
