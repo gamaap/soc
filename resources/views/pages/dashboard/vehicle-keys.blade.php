@@ -57,6 +57,16 @@ new class extends Component
             'borrower_department' => 'required|string|min:3'
         ]);
 
+<<<<<<< HEAD
+=======
+        $key = VehicleKey::findOrFail($this->keyId);
+
+        if ($key->available <= 0) {
+            $this->addError('borrower_name', 'No available keys can be borrowed at the moment.');
+            return;
+        }
+
+>>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
         KeyBorrowing::create([
             'vehicle_key_id' => $this->keyId,
             'borrower_name' => $this->borrower_name,
@@ -117,7 +127,18 @@ new class extends Component
             return collect();
         }
 
+<<<<<<< HEAD
         return KeyBorrowing::where('vehicle_key_id', $this->keyId)
+=======
+        $today = today();
+        return KeyBorrowing::where('vehicle_key_id', $this->keyId)
+            ->where(function($q) use ($today) {
+                $q->whereDate('borrowed_at', $today)
+                  ->orWhere(function($sub) use ($today) {
+                      $sub->whereDate('borrowed_at', '<', $today)->whereNull('returned_at');
+                  });
+            })
+>>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
             ->latest()
             ->get();
     }
@@ -177,6 +198,7 @@ new class extends Component
                     <flux:table.cell>{{ $key->total_keys }}</flux:table.cell>
                     <flux:table.cell>{{ $key->available }}</flux:table.cell>
                     <flux:table.cell>
+<<<<<<< HEAD
                         @if ($key->available !== 0)
                             <flux:badge size="sm" color="green">Available</flux:badge>
                         @else
@@ -185,22 +207,47 @@ new class extends Component
                     </flux:table.cell>
                     <flux:table.cell>
                         @if ($key->available == $key->total_keys)
+=======
+                        @if ($key->available === $key->total_keys)
+                            <flux:badge size="sm" color="green">Available</flux:badge>
+                        @elseif ($key->available === 0)
+                            <flux:badge size="sm" color="red">All Borrowed</flux:badge>
+                        @else
+                            <flux:badge size="sm" color="yellow">Partially Borrowed</flux:badge>
+                        @endif
+                    </flux:table.cell>
+                    <flux:table.cell class="flex gap-2" class="flex gap-2">
+                        @if ($key->available > 0)
+>>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
                             <flux:button 
                                 icon="hand-helping" 
                                 size="sm"
                                 wire:click="openBorrowModal({{ $key->id }})"
                                 wire:target="openBorrowModal({{ $key->id }})"
+<<<<<<< HEAD
                                 >
                             Borrow
                         </flux:button>
                         @else
+=======
+                            >
+                                Borrow
+                            </flux:button>
+                        @endif
+
+                        @if ($key->available < $key->total_keys)
+>>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
                             <flux:button 
                                 icon="undo-2" 
                                 size="sm"
                                 variant="primary"
                                 wire:click="openReturnModal({{ $key->id }})"
                                 wire:target="openReturnModal({{ $key->id }})"
+<<<<<<< HEAD
                                 >
+=======
+                            >
+>>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
                                 Return
                             </flux:button>
                         @endif
@@ -253,8 +300,15 @@ new class extends Component
                     <flux:heading size="lg">Borrow Key</flux:heading>
                     <flux:text class="mt-2">Record key for borrowing details.</flux:text>
                 </div>
+<<<<<<< HEAD
                 <flux:input wire:model="borrower_name" label="Borrower Name" placeholder="John" />
                 <flux:input wire:model="borrower_department" label="Department" placeholder="Information Technology" />
+=======
+                <div class="autoComplete_wrapper" wire:ignore>
+                    <flux:input id="borrower-name-vehicle" wire:model="borrower_name" label="Borrower Name" autocomplete="off" />
+                </div>
+                <flux:input wire:model="borrower_department" autocomplete="off" label="Department" readonly />
+>>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
                 <div class="flex">
                     <flux:spacer />
                     <flux:button type="submit" variant="primary" class="w-full">Record Borrow</flux:button>
@@ -270,8 +324,15 @@ new class extends Component
                     <flux:heading size="lg">Return Key</flux:heading>
                     <flux:text class="mt-2">Record key return details.</flux:text>
                 </div>
+<<<<<<< HEAD
                 <flux:input wire:model="returned_name" label="Return Person Name" placeholder="John" />
                 <flux:input wire:model="returned_department" label="Department" placeholder="Information Technology" />
+=======
+                <div class="autoComplete_wrapper" wire:ignore>
+                    <flux:input wire:model="returned_name" id="returned-name-vehicle" autocomplete="off" label="Return Person Name" />
+                </div>
+                <flux:input wire:model="returned_department" label="Department" autocomplete="off" />
+>>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
                 <div class="flex">
                     <flux:spacer />
                     <flux:button type="submit" variant="primary" class="w-full">Record Return</flux:button>
@@ -379,5 +440,80 @@ new class extends Component
             @endforelse
         </div>
     </flux:modal>
+<<<<<<< HEAD
     
 </x-pages::dashboard.keys>
+=======
+</x-pages::dashboard.keys>
+
+<script src="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10.2.9/dist/autoComplete.min.js"></script>
+<script>
+    const autoCompleteJSBorrower = new autoComplete({
+        selector: "#borrower-name-vehicle",
+        data: {
+            src: async (query) => {
+                try {
+                    const source = await fetch(`/employees/api?search=${encodeURIComponent(query)}`);
+                    const data = await source.json();
+
+                    return data;
+                } catch (error) {
+                    return error;
+                }
+            },
+            keys: ["fullname"],
+        },
+        resultsList: {
+            maxResults: 50
+        },
+        resultItem: {
+            highlight: true
+        },
+        events: {
+            input: {
+                selection: (event) => {
+                    const selection = event.detail.selection.value;
+
+                    autoCompleteJSBorrower.input.value = selection.fullname;
+                    $wire.set('borrower_name', selection.fullname);
+                    $wire.set('borrower_department', selection.department?.name ?? '');
+                }
+            }
+        }
+    });
+
+    const autoCompleteJSReturned = new autoComplete({
+        selector: "#returned-name-vehicle",
+        data: {
+            src: async (query) => {
+                try {
+                    const source = await fetch(`/employees/api?search=${encodeURIComponent(query)}`);
+                    const data = await source.json();
+
+                    return data;
+                } catch (error) {
+                    return error;
+                }
+            },
+            keys: ["fullname"],
+        },
+        resultsList: {
+            maxResults: 50
+        },
+        resultItem: {
+            highlight: true
+        },
+        events: {
+            input: {
+                selection: (event) => {
+                    const selection = event.detail.selection.value;
+
+                    autoCompleteJSReturned.input.value = selection.fullname;
+                    $wire.set('returned_name', selection.fullname);
+                    $wire.set('returned_department', selection.department?.name ?? '');
+                }
+            }
+        }
+    });
+</script>
+>>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24

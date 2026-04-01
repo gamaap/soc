@@ -96,7 +96,17 @@ new class extends Component
     #[Computed]
     public function deliveries()
     {
+<<<<<<< HEAD
         return Delivery::with('items')->latest()->get();
+=======
+        $today = today();
+        return Delivery::with('items')->where(function($q) use ($today) {
+            $q->whereDate('date', $today)
+              ->orWhere(function($sub) use ($today) {
+                  $sub->whereDate('date', '<', $today)->whereNull('exit_time');
+              });
+        })->latest()->get();
+>>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
     }
 
     #[Computed]
