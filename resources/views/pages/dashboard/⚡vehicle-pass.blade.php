@@ -47,6 +47,7 @@ new class extends Component
             ->whereIn('status', ['Assigned', 'In Transit', 'Completed'])
             ->where('plant_id', 1)
             ->where('date', Carbon::today()->toDateString())
+            ->orderByRaw('security_departed_time IS NULL DESC, security_departed_time ASC')
             ->paginate(10);
     }
 
@@ -206,7 +207,7 @@ new class extends Component
     #[Computed]
     public function employeePasses()
     {
-        return EmployeePass::latest()->get();
+        return EmployeePass::orderByRaw('leaving_time IS NULL DESC, leaving_time ASC')->latest()->get();
     }
 
     #[Computed]
@@ -297,7 +298,7 @@ new class extends Component
                                 @endif
                             </flux:table.cell>
                             <flux:table.cell>
-                                <a href="https://testsupport.ewindo.com/api/v1/rrs/r-car-driver-requests/driver-assignment-letter/{{ $pass->code }}" target="_blank">
+                                <a href="https://superapp.ewindo.co.id/api/v1/rrs/r-car-driver-requests/driver-assignment-letter/{{ $pass->code }}" target="_blank">
                                     <x-icon.eye variant="mini" />
                                 </a>
                             </flux:table.cell>

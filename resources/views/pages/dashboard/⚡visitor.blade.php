@@ -62,7 +62,7 @@ new class extends Component
               ->orWhere(function($sub) use ($today) {
                   $sub->whereDate('date', '<', $today)->whereNull('exit_time');
               });
-        })->latest()->get();
+        })->orderByRaw('exit_time IS NULL DESC, exit_time ASC')->latest()->get();
     }
 
     #[Computed]
@@ -168,7 +168,9 @@ new class extends Component
                             <flux:input wire:model="company" label="Company (Optional)" placeholder="Enter Company Name" autocomplete="off" />
                         </div>
                         <div class="grid grid-cols-2 gap-4">
-                            <flux:input wire:model="visiting" label="Visiting" placeholder="Person being visited" autocomplete="off" />
+                            <div class="autoComplete_wrapper" wire:ignore>
+                                <flux:input wire:model="visiting" id="visiting" label="Visiting" placeholder="Person being visited" autocomplete="off" />
+                            </div>
                             <flux:input wire:model="license_plate" label="License Plate (Optional)" placeholder="Enter License Plate" autocomplete="off" />
                         </div>
                         <flux:textarea
@@ -259,3 +261,39 @@ new class extends Component
         </div>
     </x-pages::dashboard.layout>
 </section>
+
+<script src="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10.2.9/dist/autoComplete.min.js"></script>
+<script>
+    const autoCompleteJS = new autoComplete({
+        selector: "#visiting",
+        data: {
+            src: async (query) => {
+                try {
+                    const source = await fetch(`/employees/api?search=${encodeURIComponent(query)}`);
+                    const data = await source.json();
+
+                    return data;
+                } catch (error) {
+                    return error;
+                }
+            },
+            keys: ["fullname"],
+        },
+        resultsList: {
+            maxResults: 50
+        },
+        resultItem: {
+            highlight: true
+        },
+        events: {
+            input: {
+                selection: (event) => {
+                    const selection = event.detail.selection.value;
+
+                    autoCompleteJS.input.value = selection.fullname;
+                    $wire.set('visiting', selection.fullname);
+                }
+            }
+        }
+    });
+</script>

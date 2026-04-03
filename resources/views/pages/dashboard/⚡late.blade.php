@@ -87,8 +87,17 @@ new class extends Component
 
     <x-pages::dashboard.layout>
         <div class="border border-accent p-6 rounded-2xl my-6">
-            <flux:heading>Record Late Arrival</flux:heading>
-            <flux:text class="mt-2">Record employees who arrive late to the facility.</flux:text>
+            <div class="flex justify-between">
+                <div>
+                    <flux:heading>Record Late Arrival</flux:heading>
+                    <flux:text class="mt-2">Record employees who arrive late to the facility.</flux:text>
+                </div>
+                <div>
+                    <flux:button variant="outline" href="{{ route('dashboard.late-manual-entry') }}" wire:current="dashboard.late-manual-entry" wire:navigate>
+                        <flux:icon.plus variant="micro" /> Manual Entry
+                    </flux:button>
+                </div>
+            </div>
 
             <div class="flex flex-col md:flex-row gap-6 items-center mt-4">
                 <div class="relative flex-1 md:w-1/2">
@@ -119,7 +128,9 @@ new class extends Component
                             </div>
                         </div>
                         <div class="col-span-4">
-                            <flux:input id="department" wire:model="department" :label="__('Department')" type="text" autocomplete="off" />
+                            <div class="autoComplete_wrapper" wire:ignore>
+                                <flux:input id="department" wire:model="department" :label="__('Department')" type="text" autocomplete="off" />
+                            </div>
                         </div>
                         <div class="col-span-4">
                             <flux:button variant="primary" class="w-full" type="submit" :disabled="$photoLoading">
@@ -160,7 +171,7 @@ new class extends Component
                             <flux:table.cell>{{ $late->name }}</flux:table.cell>
                             <flux:table.cell>{{ $late->department }}</flux:table.cell>
                             {{-- <flux:table.cell>08.00</flux:table.cell> --}}
-                            <flux:table.cell>{{ $late->actual_arrival }}</flux:table.cell>
+                            <flux:table.cell>{{ $late->formatted_time }}</flux:table.cell>
                             {{-- <flux:table.cell>
                                 <flux:badge color="red" size="sm" inset="top bottom">{{ $late->minutes_late }} minutes</flux:badge>
                             </flux:table.cell> --}}
@@ -233,6 +244,38 @@ new class extends Component
                         $wire.set('photoLoading', false);
                     };
                     img.src = resolvedPhoto;
+                }
+            }
+        }
+    });
+
+    const department = new autoComplete({
+        selector: "#department",
+        data: {
+            src: async (query) => {
+                try {
+                    const source = await fetch(`/departments/api?search=${encodeURIComponent(query)}`);
+                    const data = await source.json();
+
+                    return data;
+                } catch (error) {
+                    return error;
+                }
+            },
+            keys: ["name"],
+        },
+        resultsList: {
+            maxResults: 50
+        },
+        resultItem: {
+            highlight: true
+        },
+        events: {
+            input: {
+                selection: (event) => {
+                    const selection = event.detail.selection.value;
+
+                    $wire.set('department', selection.name);
                 }
             }
         }

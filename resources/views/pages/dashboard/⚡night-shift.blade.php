@@ -89,7 +89,7 @@ new class extends Component
               ->orWhere(function($sub) use ($today) {
                   $sub->whereDate('date', '<', $today)->whereNull('check_out_time');
               });
-        })->latest()->get();
+        })->orderByRaw('check_out_time IS NULL DESC, check_out_time ASC')->latest()->get();
     }
 };
 ?>
@@ -130,7 +130,9 @@ new class extends Component
                             </div>
                         </div>
                         <div class="col-span-4">
-                            <flux:input wire:model="department" :label="__('Department')" autocomplete="off" type="text" />
+                            <div class="autoComplete_wrapper" wire:ignore>
+                                <flux:input id="department" wire:model="department" :label="__('Department')" autocomplete="off" type="text" />
+                            </div>
                         </div>
                         <div class="col-span-4">
                             <flux:button variant="primary" class="w-full" type="submit" :disabled="$photoLoading">
@@ -170,11 +172,11 @@ new class extends Component
                             <flux:table.cell>{{ $shift->department }}</flux:table.cell>
                             <flux:table.cell>{{ $shift->check_in_time }}</flux:table.cell>
                             <flux:table.cell>
-                                    @if (! $shift->check_out_time)
-                                        <flux:button wire:click="checkOut({{ $shift->id }})" wire:target="checkOut({{ $shift->id }})">Record Check-Out</flux:button>
-                                    @else
-                                        {{ $shift->check_out_time }}
-                                    @endif
+                                @if (! $shift->check_out_time)
+                                    <flux:button wire:click="checkOut({{ $shift->id }})" wire:target="checkOut({{ $shift->id }})">Record Check-Out</flux:button>
+                                @else
+                                    {{ $shift->check_out_time }}
+                                @endif
                             </flux:table.cell>
                         </flux:table.row>
                     @empty
@@ -245,6 +247,38 @@ new class extends Component
                         $wire.set('photoLoading', false);
                     };
                     img.src = resolvedPhoto;
+                }
+            }
+        }
+    });
+
+    const department = new autoComplete({
+        selector: "#department",
+        data: {
+            src: async (query) => {
+                try {
+                    const source = await fetch(`/departments/api?search=${encodeURIComponent(query)}`);
+                    const data = await source.json();
+
+                    return data;
+                } catch (error) {
+                    return error;
+                }
+            },
+            keys: ["name"],
+        },
+        resultsList: {
+            maxResults: 50
+        },
+        resultItem: {
+            highlight: true
+        },
+        events: {
+            input: {
+                selection: (event) => {
+                    const selection = event.detail.selection.value;
+
+                    $wire.set('department', selection.name);
                 }
             }
         }

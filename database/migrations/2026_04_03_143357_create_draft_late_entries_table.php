@@ -11,16 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('employee_passes', function (Blueprint $table) {
+        Schema::create('draft_late_entries', function (Blueprint $table) {
             $table->id();
             $table->date('date');
             $table->string('name');
             $table->string('department');
-            $table->string('license_plate');
-            $table->string('vehicle_type');
-            $table->time('entry_time');
-            $table->time('leaving_time')->nullable();
-            $table->auditColumns();
+            $table->time('actual_arrival');
+            $table->unsignedBigInteger('minutes_late')->nullable();
+            $table->string('photo')->nullable();
+            $table->foreignId('user_id')->constrained('users');
+            $table->timestamps();
         });
     }
 
@@ -29,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('employee_passes');
+        Schema::dropIfExists('draft_late_entries');
     }
 };

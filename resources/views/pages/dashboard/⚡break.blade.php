@@ -117,7 +117,9 @@ new class extends Component
                             </div>
                         </div>
                         <div class="col-span-4">
-                            <flux:input wire:model="department" :label="__('Department')" type="text" autocomplete="off" />
+                            <div class="autoComplete_wrapper" wire:ignore>
+                                <flux:input wire:model="department" id="department" :label="__('Department')" type="text" autocomplete="off" />
+                            </div>
                         </div>
                         <div class="col-span-4">
                             <flux:button variant="primary" class="w-full" type="submit" :disabled="$photoLoading">
@@ -232,6 +234,38 @@ new class extends Component
                         $wire.set('photoLoading', false);
                     };
                     img.src = resolvedPhoto;
+                }
+            }
+        }
+    });
+
+    const department = new autoComplete({
+        selector: "#department",
+        data: {
+            src: async (query) => {
+                try {
+                    const source = await fetch(`/departments/api?search=${encodeURIComponent(query)}`);
+                    const data = await source.json();
+
+                    return data;
+                } catch (error) {
+                    return error;
+                }
+            },
+            keys: ["name"],
+        },
+        resultsList: {
+            maxResults: 50
+        },
+        resultItem: {
+            highlight: true
+        },
+        events: {
+            input: {
+                selection: (event) => {
+                    const selection = event.detail.selection.value;
+
+                    $wire.set('department', selection.name);
                 }
             }
         }
