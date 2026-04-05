@@ -86,8 +86,17 @@ new class extends Component
 
     <x-pages::dashboard.layout>
         <div class="border border-accent p-6 rounded-2xl my-6">
-            <flux:heading>Record Employee Return Time</flux:heading>
-            <flux:text class="mt-2">Record when employee return from break.</flux:text>
+            <div class="flex items-center justify-between">
+                <div>
+                    <flux:heading>Record Employee Return Time</flux:heading>
+                    <flux:text class="mt-2">Record when employee return from break.</flux:text>
+                </div>
+                <div>
+                    <flux:button variant="outline" href="{{ route('dashboard.break-manual-entry') }}" wire:current="dashboard.break-manual-entry" wire:navigate>
+                        <flux:icon.plus variant="micro" /> Manual Entry
+                    </flux:button>
+                </div>
+            </div>
         
             <div class="flex flex-col md:flex-row gap-6 items-center mt-4">
                 <div class="relative flex-1 md:w-1/2">

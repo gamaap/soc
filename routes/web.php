@@ -20,6 +20,8 @@ Route::middleware(['auth'])->group(function () {
     Route::livewire('dashboard/keys/facility', 'pages::dashboard.facility-keys')->name('dashboard.keys.facility');
 
     Route::livewire('dashboard/late/manual-entry', 'pages::dashboard.late-manual-entry')->name('dashboard.late-manual-entry');
+    Route::livewire('dashboard/break/manual-entry', 'pages::dashboard.break-manual-entry')->name('dashboard.break-manual-entry');
+    Route::livewire('dashboard/night-shift/manual-entry', 'pages::dashboard.night-shift-manual-entry')->name('dashboard.night-shift-manual-entry');
 });
 
 Route::get('/employees/api', function (Request $request) {

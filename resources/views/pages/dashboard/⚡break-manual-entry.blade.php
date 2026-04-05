@@ -1,7 +1,7 @@
 <?php
 
-use App\Models\DraftLateEntry;
-use App\Models\Late;
+use App\Models\DraftBreakEntry;
+use App\Models\Breaks;
 use App\Models\SuperappEmployee;
 use Carbon\Carbon;
 use Livewire\Component;
@@ -24,11 +24,11 @@ new class extends Component
 
     public function loadEntries()
     {
-        $this->draftEntries = DraftLateEntry::where('user_id', auth()->id())
+        $this->draftEntries = DraftBreakEntry::where('user_id', auth()->id())
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $this->completedEntries = Late::orderBy('created_at', 'desc')
+        $this->completedEntries = Breaks::orderBy('created_at', 'desc')
             ->take(50)
             ->get();
     }
@@ -49,11 +49,11 @@ new class extends Component
             return;
         }
 
-        $standardArrival = '08:00';
+        $standardArrival = '13:00';
         $actualArrival = $this->actualArrivalTime;
         $minutesLate = $this->calculateMinutesLate($standardArrival, $actualArrival);
 
-        DraftLateEntry::create([
+        DraftBreakEntry::create([
             'date' => $this->selectedDate,
             'name' => $employee->fullname,
             'department' => $employee->department->name ?? 'Unknown',
@@ -68,19 +68,19 @@ new class extends Component
 
         session()->flash('message', 'Entry added to draft successfully.');
 
-        Flux::modal('late-manual-entry')->close();
+        Flux::modal('break-manual-entry')->close();
     }
 
     public function submitAll()
     {
-        $drafts = DraftLateEntry::where('user_id', auth()->id())->get();
+        $drafts = DraftBreakEntry::where('user_id', auth()->id())->get();
 
         foreach ($drafts as $draft) {
-            Late::create([
+            Breaks::create([
                 'date' => $draft->date,
                 'name' => $draft->name,
                 'department' => $draft->department,
-                'actual_arrival' => $draft->actual_arrival,
+                'actual_return' => $draft->actual_arrival,
                 'minutes_late' => $draft->minutes_late,
                 'photo' => $draft->photo,
             ]);
@@ -106,12 +106,12 @@ new class extends Component
 
         $this->securityPin = '';
 
-        Flux::modal('late-submit-verification')->close();
+        Flux::modal('break-submit-verification')->close();
     }
 
     public function deleteDraft($id)
     {
-        DraftLateEntry::find($id)?->delete();
+        DraftBreakEntry::find($id)?->delete();
         $this->loadEntries();
     }
 
@@ -136,11 +136,11 @@ new class extends Component
         <div class="border border-accent p-6 rounded-2xl my-6">
             <div class="flex justify-between mb-8">
                 <div>
-                    <flux:heading>Manual Entry - Late Arrival</flux:heading>
+                    <flux:heading>Manual Entry - Break Time Arrival</flux:heading>
                     <flux:text class="mt-2">Manage draft and completed entries.</flux:text>
                 </div>
                 <div>
-                    <flux:button variant="outline" href="{{ route('dashboard.late') }}" wire:current="dashboard.late" wire:navigate>
+                    <flux:button variant="outline" href="{{ route('dashboard.break') }}" wire:current="dashboard.break" wire:navigate>
                         <flux:icon.arrow-left variant="micro" /> Back to Main Menu
                     </flux:button>
                 </div>
@@ -149,15 +149,15 @@ new class extends Component
             {{-- @if (session()->has('message'))
                 <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
                     {{ session('message') }}
-                </div>
-            @endif --}}
+                </div> --}}
+            {{-- @endif --}}
 
             <div class="grid grid-cols-4 gap-2 items-end">
                 <div class="col-span-3">
                     <flux:input wire:model="selectedDate" type="date" label="Select Date" class="w-full" />
                 </div>
                 <div class="col-span-1">
-                    <flux:modal.trigger name="late-manual-entry">
+                    <flux:modal.trigger name="break-manual-entry">
                         <flux:button variant="primary" class="place-items-end">
                             <flux:icon.plus variant="micro" /> Add Entry for {{ $selectedDate ? Carbon::parse($selectedDate)->format('d/m/Y') : 'Selected Date' }}
                         </flux:button>
@@ -199,7 +199,7 @@ new class extends Component
             </div>
 
             <div class="mt-4">
-                <flux:modal.trigger name="late-submit-verification">
+                <flux:modal.trigger name="break-submit-verification">
                     <flux:button variant="primary" :disabled="$draftEntries->count() === 0">Submit All ({{ $draftEntries->count() }})</flux:button>
                 </flux:modal.trigger>
             </div>
@@ -233,12 +233,12 @@ new class extends Component
                 </flux:table>
             </div>
 
-            <flux:modal name="late-manual-entry" class="w-100!">
+            <flux:modal name="break-manual-entry" class="w-100!">
                 <form wire:submit="addEntry">
                     <div class="space-y-6">
                         <div>
-                            <flux:heading size="lg">Add Late Arrival Records</flux:heading>
-                            <flux:text class="mt-2">Manually enter late arrival information for employees.</flux:text>
+                            <flux:heading size="lg">Add Break Time Records</flux:heading>
+                            <flux:text class="mt-2">Manually enter break time information for employees.</flux:text>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div class="col-span-2">
@@ -255,7 +255,7 @@ new class extends Component
                         <div class="flex">
                             <flux:spacer />
                             <div class="flex gap-2 items-end justify-end">
-                                <flux:button type="button" x-on:click="$flux.modal('late-manual-entry').close()">Cancel</flux:button>
+                                <flux:button type="button" x-on:click="$flux.modal('break-manual-entry').close()">Cancel</flux:button>
                                 <flux:button type="submit" variant="primary" icon="save">
                                     Save as Draft
                                 </flux:button>
@@ -265,7 +265,7 @@ new class extends Component
                 </form>
             </flux:modal>
 
-            <flux:modal name="late-submit-verification" class="w-[1000px]!">
+            <flux:modal name="break-submit-verification" class="w-[1000px]!">
                 <div class="space-y-6">
                     <div>
                         <flux:heading size="lg">Verify and Submit All Drafts</flux:heading>
@@ -303,7 +303,7 @@ new class extends Component
                     </div>
 
                     <div class="flex justify-end gap-2">
-                        <flux:button type="button" x-on:click="$flux.modal('late-submit-verification').close()">Cancel</flux:button>
+                        <flux:button type="button" x-on:click="$flux.modal('break-submit-verification').close()">Cancel</flux:button>
                         <flux:button type="button" variant="primary" wire:click="verifyAndSubmit">Verify & Submit</flux:button>
                     </div>
                 </div>

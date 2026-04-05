@@ -5,7 +5,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
-class NightShift extends Model
+class DraftNightShiftEntry extends Model
 {
     protected $fillable = [
         'date',
@@ -14,11 +14,13 @@ class NightShift extends Model
         'check_in_time',
         'check_out_time',
         'photo',
+        'user_id',
     ];
-    
-    protected $casts = [
-        'date' => 'date'
-    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function getFormattedDateAttribute()
     {

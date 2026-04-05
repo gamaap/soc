@@ -1,7 +1,7 @@
 <?php
 
-use App\Models\DraftLateEntry;
-use App\Models\Late;
+use App\Models\DraftNightShiftEntry;
+use App\Models\NightShift;
 use App\Models\SuperappEmployee;
 use Carbon\Carbon;
 use Livewire\Component;
@@ -10,7 +10,8 @@ new class extends Component
 {
     public $selectedDate;
     public $employee;
-    public $actualArrivalTime;
+    public $checkInTime;
+    public $checkOutTime;
     public $photo = '';
     public $securityPin = '';
     public $verificationError = '';
@@ -24,11 +25,11 @@ new class extends Component
 
     public function loadEntries()
     {
-        $this->draftEntries = DraftLateEntry::where('user_id', auth()->id())
+        $this->draftEntries = DraftNightShiftEntry::where('user_id', auth()->id())
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $this->completedEntries = Late::orderBy('created_at', 'desc')
+        $this->completedEntries = NightShift::orderBy('created_at', 'desc')
             ->take(50)
             ->get();
     }
@@ -38,7 +39,8 @@ new class extends Component
         $this->validate([
             'selectedDate' => 'required|date',
             'employee' => 'required|string',
-            'actualArrivalTime' => 'required|date_format:H:i',
+            'checkInTime' => 'required|date_format:H:i',
+            'checkOutTime' => 'required|date_format:H:i',
         ]);
 
         // Find employee details
@@ -49,39 +51,38 @@ new class extends Component
             return;
         }
 
-        $standardArrival = '08:00';
-        $actualArrival = $this->actualArrivalTime;
-        $minutesLate = $this->calculateMinutesLate($standardArrival, $actualArrival);
+        // $actualArrival = $this->actualArrivalTime;
+        // $minutesLate = $this->calculateMinutesLate($standardArrival, $actualArrival);
 
-        DraftLateEntry::create([
+        DraftNightShiftEntry::create([
             'date' => $this->selectedDate,
             'name' => $employee->fullname,
             'department' => $employee->department->name ?? 'Unknown',
-            'actual_arrival' => $this->actualArrivalTime,
-            'minutes_late' => $minutesLate,
+            'check_in_time' => $this->checkInTime,
+            'check_out_time' => $this->checkOutTime,
             'photo' => "https://superapp.ewindo.co.id/storage/$employee->photo" ?? '',
             'user_id' => auth()->id(),
         ]);
 
-        $this->reset(['employee', 'actualArrivalTime', 'photo']);
+        $this->reset(['employee', 'checkInTime', 'checkOutTime', 'photo']);
         $this->loadEntries();
 
         session()->flash('message', 'Entry added to draft successfully.');
 
-        Flux::modal('late-manual-entry')->close();
+        Flux::modal('night-shift-manual-entry')->close();
     }
 
     public function submitAll()
     {
-        $drafts = DraftLateEntry::where('user_id', auth()->id())->get();
+        $drafts = DraftNightShiftEntry::where('user_id', auth()->id())->get();
 
         foreach ($drafts as $draft) {
-            Late::create([
+            NightShift::create([
                 'date' => $draft->date,
                 'name' => $draft->name,
                 'department' => $draft->department,
-                'actual_arrival' => $draft->actual_arrival,
-                'minutes_late' => $draft->minutes_late,
+                'check_in_time' => $draft->check_in_time,
+                'check_out_time' => $draft->check_out_time,
                 'photo' => $draft->photo,
             ]);
 
@@ -106,26 +107,26 @@ new class extends Component
 
         $this->securityPin = '';
 
-        Flux::modal('late-submit-verification')->close();
+        Flux::modal('night-shift-submit-verification')->close();
     }
 
     public function deleteDraft($id)
     {
-        DraftLateEntry::find($id)?->delete();
+        DraftNightShiftEntry::find($id)?->delete();
         $this->loadEntries();
     }
 
-    private function calculateMinutesLate($standard, $actual)
-    {
-        $standardTime = strtotime($standard);
-        $actualTime = strtotime($actual);
+    // private function calculateMinutesLate($standard, $actual)
+    // {
+    //     $standardTime = strtotime($standard);
+    //     $actualTime = strtotime($actual);
 
-        if ($actualTime <= $standardTime) {
-            return 0;
-        }
+    //     if ($actualTime <= $standardTime) {
+    //         return 0;
+    //     }
 
-        return round(($actualTime - $standardTime) / 60);
-    }
+    //     return round(($actualTime - $standardTime) / 60);
+    // }
 };
 ?>
 
@@ -136,11 +137,11 @@ new class extends Component
         <div class="border border-accent p-6 rounded-2xl my-6">
             <div class="flex justify-between mb-8">
                 <div>
-                    <flux:heading>Manual Entry - Late Arrival</flux:heading>
+                    <flux:heading>Manual Entry - Night Shift Check-In and Check-Out</flux:heading>
                     <flux:text class="mt-2">Manage draft and completed entries.</flux:text>
                 </div>
                 <div>
-                    <flux:button variant="outline" href="{{ route('dashboard.late') }}" wire:current="dashboard.late" wire:navigate>
+                    <flux:button variant="outline" href="{{ route('dashboard.night-shift') }}" wire:current="dashboard.night-shift" wire:navigate>
                         <flux:icon.arrow-left variant="micro" /> Back to Main Menu
                     </flux:button>
                 </div>
@@ -149,15 +150,15 @@ new class extends Component
             {{-- @if (session()->has('message'))
                 <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
                     {{ session('message') }}
-                </div>
-            @endif --}}
+                </div> --}}
+            {{-- @endif --}}
 
             <div class="grid grid-cols-4 gap-2 items-end">
                 <div class="col-span-3">
                     <flux:input wire:model="selectedDate" type="date" label="Select Date" class="w-full" />
                 </div>
                 <div class="col-span-1">
-                    <flux:modal.trigger name="late-manual-entry">
+                    <flux:modal.trigger name="night-shift-manual-entry">
                         <flux:button variant="primary" class="place-items-end">
                             <flux:icon.plus variant="micro" /> Add Entry for {{ $selectedDate ? Carbon::parse($selectedDate)->format('d/m/Y') : 'Selected Date' }}
                         </flux:button>
@@ -171,7 +172,8 @@ new class extends Component
                     <flux:table.columns>
                         <flux:table.column>Employees</flux:table.column>
                         <flux:table.column>Department</flux:table.column>
-                        <flux:table.column>Arrival Time</flux:table.column>
+                        <flux:table.column>Check-In Time</flux:table.column>
+                        <flux:table.column>Check-Out Time</flux:table.column>
                         <flux:table.column>Actions</flux:table.column>
                     </flux:table.columns>
 
@@ -180,7 +182,8 @@ new class extends Component
                             <flux:table.row>
                                 <flux:table.cell>{{ $entry->name }}</flux:table.cell>
                                 <flux:table.cell>{{ $entry->department }}</flux:table.cell>
-                                <flux:table.cell>{{ $entry->formatted_time }}</flux:table.cell>
+                                <flux:table.cell>{{ $entry->check_in_time }}</flux:table.cell>
+                                <flux:table.cell>{{ $entry->check_out_time }}</flux:table.cell>
                                 <flux:table.cell>
                                     <flux:button wire:click="deleteDraft({{ $entry->id }})" variant="ghost" size="sm">
                                         <flux:icon.trash variant="mini" class="text-red-500" />
@@ -199,7 +202,7 @@ new class extends Component
             </div>
 
             <div class="mt-4">
-                <flux:modal.trigger name="late-submit-verification">
+                <flux:modal.trigger name="night-shift-submit-verification">
                     <flux:button variant="primary" :disabled="$draftEntries->count() === 0">Submit All ({{ $draftEntries->count() }})</flux:button>
                 </flux:modal.trigger>
             </div>
@@ -210,7 +213,8 @@ new class extends Component
                     <flux:table.columns>
                         <flux:table.column>Employees</flux:table.column>
                         <flux:table.column>Department</flux:table.column>
-                        <flux:table.column>Arrival Time</flux:table.column>
+                        <flux:table.column>Check-In Time</flux:table.column>
+                        <flux:table.column>Check-Out Time</flux:table.column>
                         <flux:table.column>Confirmed By</flux:table.column>
                     </flux:table.columns>
 
@@ -219,7 +223,8 @@ new class extends Component
                             <flux:table.row>
                                 <flux:table.cell>{{ $entry->name }}</flux:table.cell>
                                 <flux:table.cell>{{ $entry->department }}</flux:table.cell>
-                                <flux:table.cell>{{ $entry->formatted_time }}</flux:table.cell>
+                                <flux:table.cell>{{ $entry->check_in_time }}</flux:table.cell>
+                                <flux:table.cell>{{ $entry->check_out_time }}</flux:table.cell>
                                 <flux:table.cell>{{ Auth::user()->name }}</flux:table.cell>
                             </flux:table.row>
                         @empty
@@ -233,12 +238,12 @@ new class extends Component
                 </flux:table>
             </div>
 
-            <flux:modal name="late-manual-entry" class="w-100!">
+            <flux:modal name="night-shift-manual-entry" class="w-100!">
                 <form wire:submit="addEntry">
                     <div class="space-y-6">
                         <div>
-                            <flux:heading size="lg">Add Late Arrival Records</flux:heading>
-                            <flux:text class="mt-2">Manually enter late arrival information for employees.</flux:text>
+                            <flux:heading size="lg">Add Night Shift Records</flux:heading>
+                            <flux:text class="mt-2">Manually enter night shift information for employees.</flux:text>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div class="col-span-2">
@@ -247,15 +252,19 @@ new class extends Component
                                     @error('employee') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                                 </div>
                             </div>
-                            <flux:input wire:model="selectedDate" class="col-span-1" label="Date" type="date" />
-                            <flux:input wire:model="actualArrivalTime" class="col-span-1" label="Actual Arrival Time" type="time" />
-                            @error('selectedDate') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                            @error('actualArrivalTime') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            <div class="col-span-2">
+                                <flux:input wire:model="selectedDate" class="col-span-1" label="Date" type="date" />
+                                @error('selectedDate') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+                            <flux:input wire:model="checkInTime" class="col-span-1" label="Check-In Time" type="time" />
+                            <flux:input wire:model="checkOutTime" class="col-span-1" label="Check-Out Time" type="time" />
+                            @error('checkInTime') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            @error('checkOutTime') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                         </div>
                         <div class="flex">
                             <flux:spacer />
                             <div class="flex gap-2 items-end justify-end">
-                                <flux:button type="button" x-on:click="$flux.modal('late-manual-entry').close()">Cancel</flux:button>
+                                <flux:button type="button" x-on:click="$flux.modal('night-shift-manual-entry').close()">Cancel</flux:button>
                                 <flux:button type="submit" variant="primary" icon="save">
                                     Save as Draft
                                 </flux:button>
@@ -265,7 +274,7 @@ new class extends Component
                 </form>
             </flux:modal>
 
-            <flux:modal name="late-submit-verification" class="w-[1000px]!">
+            <flux:modal name="night-shift-submit-verification" class="w-[1000px]!">
                 <div class="space-y-6">
                     <div>
                         <flux:heading size="lg">Verify and Submit All Drafts</flux:heading>
@@ -277,7 +286,8 @@ new class extends Component
                             <flux:table.column>Employees</flux:table.column>
                             <flux:table.column>Department</flux:table.column>
                             <flux:table.column>Date</flux:table.column>
-                            <flux:table.column>Arrival Time</flux:table.column>
+                            <flux:table.column>Check-In Time</flux:table.column>
+                            <flux:table.column>Check-Out Time</flux:table.column>
                         </flux:table.columns>
                         <flux:table.rows>
                             @forelse($draftEntries as $entry)
@@ -285,7 +295,8 @@ new class extends Component
                                     <flux:table.cell>{{ $entry->name }}</flux:table.cell>
                                     <flux:table.cell>{{ $entry->department }}</flux:table.cell>
                                     <flux:table.cell>{{ $entry->formatted_date }}</flux:table.cell>
-                                    <flux:table.cell>{{ $entry->formatted_time }}</flux:table.cell>
+                                    <flux:table.cell>{{ $entry->check_in_time }}</flux:table.cell>
+                                    <flux:table.cell>{{ $entry->check_out_time }}</flux:table.cell>
                                 </flux:table.row>
                             @empty
                                 <flux:table.row>
@@ -303,7 +314,7 @@ new class extends Component
                     </div>
 
                     <div class="flex justify-end gap-2">
-                        <flux:button type="button" x-on:click="$flux.modal('late-submit-verification').close()">Cancel</flux:button>
+                        <flux:button type="button" x-on:click="$flux.modal('night-shift-submit-verification').close()">Cancel</flux:button>
                         <flux:button type="button" variant="primary" wire:click="verifyAndSubmit">Verify & Submit</flux:button>
                     </div>
                 </div>

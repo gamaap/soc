@@ -99,8 +99,17 @@ new class extends Component
 
     <x-pages::dashboard.layout>
         <div class="border border-accent p-6 rounded-2xl my-6">
-            <flux:heading>Record Night Shift Attendance</flux:heading>
-            <flux:text class="mt-2">Record employee check-in and check-out times for night shift.</flux:text>
+            <div class="flex items-center justify-between">
+                <div>
+                    <flux:heading>Record Night Shift Attendance</flux:heading>
+                    <flux:text class="mt-2">Record employee check-in and check-out times for night shift.</flux:text>
+                </div>
+                <div>
+                    <flux:button variant="outline" href="{{ route('dashboard.night-shift-manual-entry') }}" wire:current="dashboard.night-shift-manual-entry" wire:navigate>
+                        <flux:icon.plus variant="micro" /> Manual Entry
+                    </flux:button>
+                </div>
+            </div>
 
             <div class="flex flex-col md:flex-row gap-6 items-center mt-4">
                 <div class="relative flex-1 md:w-1/2">
@@ -108,7 +117,7 @@ new class extends Component
                         src="{{ $photo ?: asset('img/avatar-default.png') }}"
                         onerror="this.onerror=null; this.src='https://placehold.co/300';"
                         alt="Employee photo"
-                        class="w-full h-auto rounded-xl object-cover"
+                        class="w-full h-auto rounded-xl object-cover border border-accent/20"
                     >
 
                     @if ($photoLoading)
