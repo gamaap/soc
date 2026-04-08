@@ -145,13 +145,7 @@ new class extends Component
                     </flux:button>
                 </div>
             </div>
-
-            {{-- @if (session()->has('message'))
-                <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
-                    {{ session('message') }}
-                </div>
-            @endif --}}
-
+            
             <div class="grid grid-cols-4 gap-2 items-end">
                 <div class="col-span-3">
                     <flux:input wire:model="selectedDate" type="date" label="Select Date" class="w-full" />

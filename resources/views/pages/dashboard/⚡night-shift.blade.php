@@ -89,7 +89,7 @@ new class extends Component
               ->orWhere(function($sub) use ($today) {
                   $sub->whereDate('date', '<', $today)->whereNull('check_out_time');
               });
-        })->orderByRaw('check_out_time IS NULL DESC, check_out_time ASC')->latest()->get();
+        })->orderByRaw('check_out_time IS NULL DESC, check_out_time ASC')->latest()->paginate(10);
     }
 };
 ?>
@@ -160,7 +160,7 @@ new class extends Component
             <flux:heading>Night Shift Records</flux:heading>
             <flux:text class="mt-2">View all night shift attendance records.</flux:text>
 
-            <flux:table class="mt-4">
+            <flux:table class="mt-4" :paginate="$this->shifts">
                 <flux:table.columns>
                     <flux:table.column>Photo</flux:table.column>
                     <flux:table.column>Date</flux:table.column>

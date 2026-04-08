@@ -6,7 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class KeyBorrowing extends Model
+class DraftKeyBorrowingsEntry extends Model
 {
     protected $guarded = [];
 
@@ -18,6 +18,16 @@ class KeyBorrowing extends Model
     public function facilityKey(): BelongsTo
     {
         return $this->belongsTo(FacilityKey::class);
+    }
+
+    public function getBorrowTimeAttribute($value)
+    {
+        return $value ? Carbon::parse($value)->format('H:i') : null;
+    }
+
+    public function getReturnTimeAttribute($value)
+    {
+        return $value ? Carbon::parse($value)->format('H:i') : null;
     }
 
     public function getBorrowedAtAttribute($value)

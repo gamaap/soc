@@ -76,7 +76,7 @@ new class extends Component
     #[Computed]
     public function breaks()
     {
-        return Breaks::whereDate('date', today())->latest()->get();
+        return Breaks::whereDate('date', today())->latest()->paginate(10);
     }
 };
 ?>
@@ -149,7 +149,7 @@ new class extends Component
             <flux:heading>Break Time History</flux:heading>
             <flux:text class="mt-2">View all break time records.</flux:text>
 
-            <flux:table class="mt-4">
+            <flux:table class="mt-4" :paginate="$this->breaks">
                 <flux:table.columns>
                     <flux:table.column>Photo</flux:table.column>
                     <flux:table.column>Date</flux:table.column>

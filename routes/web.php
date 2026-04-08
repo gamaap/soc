@@ -22,6 +22,12 @@ Route::middleware(['auth'])->group(function () {
     Route::livewire('dashboard/late/manual-entry', 'pages::dashboard.late-manual-entry')->name('dashboard.late-manual-entry');
     Route::livewire('dashboard/break/manual-entry', 'pages::dashboard.break-manual-entry')->name('dashboard.break-manual-entry');
     Route::livewire('dashboard/night-shift/manual-entry', 'pages::dashboard.night-shift-manual-entry')->name('dashboard.night-shift-manual-entry');
+    Route::livewire('dashboard/visitor/manual-entry', 'pages::dashboard.visitor-manual-entry')->name('dashboard.visitor-manual-entry');
+    Route::livewire('dashboard/delivery/manual-entry', 'pages::dashboard.delivery-manual-entry')->name('dashboard.delivery-manual-entry');
+    Route::livewire('dashboard/vehicle-pass/manual-entry', 'pages::dashboard.vehicle-pass-manual-entry')->name('dashboard.vehicle-pass-manual-entry');
+    Route::livewire('dashboard/vehicle-pass/employee-pass/manual-entry', 'pages::dashboard.employee-pass-manual-entry')->name('dashboard.employee-pass-manual-entry');
+    Route::livewire('dashboard/keys/vehicle/manual-entry', 'pages::dashboard.vehicle-keys-manual-entry')->name('dashboard.vehicle-keys-manual-entry');
+    Route::livewire('dashboard/keys/facility/manual-entry', 'pages::dashboard.facility-keys-manual-entry')->name('dashboard.keys.facility-manual-entry');
 });
 
 Route::get('/employees/api', function (Request $request) {

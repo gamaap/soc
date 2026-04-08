@@ -207,7 +207,7 @@ new class extends Component
     #[Computed]
     public function employeePasses()
     {
-        return EmployeePass::orderByRaw('leaving_time IS NULL DESC, leaving_time ASC')->latest()->get();
+        return EmployeePass::orderByRaw('leaving_time IS NULL DESC, leaving_time ASC')->latest()->paginate(10);
     }
 
     #[Computed]
@@ -224,9 +224,16 @@ new class extends Component
     <x-pages::dashboard.layout>
         <div class="border border-accent p-6 rounded-2xl my-6">
             <div class="flex items-center justify-between">
-                 <div>
-                    <flux:heading>Company Vehicle Pass</flux:heading>
-                    <flux:text class="mt-2">Track company vehicle movements with milleage records.</flux:text>
+                <div>
+                    <div>
+                        <flux:heading>Company Vehicle Pass</flux:heading>
+                        <flux:text class="mt-2">Track company vehicle movements with milleage records.</flux:text>
+                    </div>
+                </div> 
+                <div>
+                    <flux:button variant="outline" href="{{ route('dashboard.vehicle-pass-manual-entry') }}" wire:current="dashboard.vehicle-pass-manual-entry" wire:navigate>
+                        <flux:icon.plus variant="micro" /> Manual Entry
+                    </flux:button>
                 </div>
             </div>
 
@@ -352,10 +359,13 @@ new class extends Component
                     <flux:heading>Employee Pass</flux:heading>
                     <flux:text class="mt-2">Track employee personal vehicle entries.</flux:text>
                 </div>
-                <div>
+                <div class="flex items-center justify-end gap-2">
                     <flux:modal.trigger name="master-data-vehicle">
                         <flux:button variant="primary">Master Data</flux:button>
                     </flux:modal.trigger>
+                    <flux:button variant="outline" href="{{ route('dashboard.employee-pass-manual-entry') }}" wire:current="dashboard.employee-pass-manual-entry" wire:navigate>
+                        <flux:icon.plus variant="micro" /> Manual Entry
+                    </flux:button>
                 </div>
             </div>
             <div class="my-6">
@@ -368,7 +378,7 @@ new class extends Component
                             <flux:input wire:model="department" :label="__('Department')" type="text" autocomplete="off" />
                         </div>
                         <div class="col-span-3">
-                            @if (count($plateOptions) > 1)
+                            @if (count($plateOptions) >= 1)
                                 <flux:label>Vehicle Number</flux:label>
                                 <flux:select wire:model="license_plate" class="mt-2">
                                     <flux:select.option value="">Select a vehicle</flux:select.option>
@@ -391,7 +401,7 @@ new class extends Component
                 </form>
             </div>
             <flux:separator variant="subtle" />
-            <flux:table class="mt-4">
+            <flux:table class="mt-4" :paginate="$this->employeePasses">
                 <flux:table.columns>
                     <flux:table.column>Employee Name</flux:table.column>
                     <flux:table.column>Department</flux:table.column>

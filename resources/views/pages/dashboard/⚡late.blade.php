@@ -77,7 +77,7 @@ new class extends Component
     #[Computed]
     public function lates()
     {
-        return Late::whereDate('date', today())->latest()->get();
+        return Late::whereDate('date', today())->latest()->paginate(10);
     }
 };
 ?>
@@ -150,7 +150,7 @@ new class extends Component
             <flux:heading>Late Arrival Records</flux:heading>
             <flux:text class="mt-2">History of late arrivals.</flux:text>
 
-            <flux:table class="mt-4">
+            <flux:table class="mt-4" :paginate="$this->lates">
                 <flux:table.columns>
                     <flux:table.column>Photo</flux:table.column>
                     <flux:table.column>Date</flux:table.column>

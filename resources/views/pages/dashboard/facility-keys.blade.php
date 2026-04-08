@@ -114,7 +114,7 @@ new class extends Component
     #[Computed]
     public function facilityKeys()
     {
-        return FacilityKey::with('borrowings')->get();        
+        return FacilityKey::with('borrowings')->paginate(10);        
     }
 
     #[Computed]
@@ -179,12 +179,17 @@ new class extends Component
             <flux:heading>Facility Keys</flux:heading>
             <flux:text class="mt-2">Manage keys for facility areas and rooms.</flux:text>
         </div>
-        <flux:modal.trigger name="add-facility-key">
-            <flux:button icon="plus">Add Facility Keys</flux:button>
-        </flux:modal.trigger>
+        <div class="flex items-center justify-end gap-2">
+            <flux:button variant="outline" href="{{ route('dashboard.keys.facility-manual-entry') }}" wire:current="dashboard.keys.facility-manual-entry" wire:navigate>
+                    <flux:icon.plus variant="micro" /> Manual Entry
+                </flux:button>
+            <flux:modal.trigger name="add-facility-key">
+                <flux:button icon="plus" variant="primary">Add Facility Keys</flux:button>
+            </flux:modal.trigger>
+        </div>
     </div>
 
-     <flux:table class="mt-4">
+     <flux:table class="mt-4" :paginate="$this->facilityKeys">
         <flux:table.columns>
             <flux:table.column>Key Name</flux:table.column>
             <flux:table.column>Area</flux:table.column>

@@ -121,7 +121,7 @@ new class extends Component
     #[Computed]
     public function vehicleKeys()
     {
-        return VehicleKey::with('borrowings')->get();        
+        return VehicleKey::with('borrowings')->paginate(10);        
     }
 
     #[Computed]
@@ -186,12 +186,17 @@ new class extends Component
             <flux:heading>Vehicle Keys</flux:heading>
             <flux:text class="mt-2">Manage keys for company vehicles.</flux:text>
         </div>
-        <flux:modal.trigger name="add-vehicle-key">
-            <flux:button icon="plus">Add Vehicle Keys</flux:button>
-        </flux:modal.trigger>
+        <div class="flex items-center justify-end gap-2">
+            <flux:button variant="outline" href="{{ route('dashboard.vehicle-keys-manual-entry') }}" wire:current="dashboard.vehicle-keys-manual-entry" wire:navigate>
+                <flux:icon.plus variant="micro" /> Manual Entry
+            </flux:button>
+            <flux:modal.trigger name="add-vehicle-key">
+                <flux:button icon="plus" variant="primary">Add Vehicle Keys</flux:button>
+            </flux:modal.trigger>
+        </div>
     </div>
 
-     <flux:table class="mt-4">
+     <flux:table class="mt-4" :paginate="$this->vehicleKeys">
         <flux:table.columns>
             <flux:table.column>Vehicle Number</flux:table.column>
             <flux:table.column>Car Type</flux:table.column>

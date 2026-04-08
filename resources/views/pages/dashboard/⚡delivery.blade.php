@@ -102,7 +102,7 @@ new class extends Component
               ->orWhere(function($sub) use ($today) {
                   $sub->whereDate('date', '<', $today)->whereNull('exit_time');
               });
-        })->orderByRaw('exit_time IS NULL DESC, exit_time ASC')->latest()->get();
+        })->orderByRaw('exit_time IS NULL DESC, exit_time ASC')->latest()->paginate(10);
     }
 
     #[Computed]
@@ -135,12 +135,18 @@ new class extends Component
                     <flux:text class="mt-2">Track delivery entries and exits.</flux:text>
                 </div>
 
-                <flux:modal.trigger name="record-delivery">
-                    <flux:button icon="truck">Record Delivery Entry</flux:button>
-                </flux:modal.trigger>
+                <div class="flex justify-end gap-2">
+                    <flux:button variant="outline" href="{{ route('dashboard.delivery-manual-entry') }}" wire:current="dashboard.delivery-manual-entry" wire:navigate>
+                        <flux:icon.plus variant="micro" /> Manual Entry
+                    </flux:button>
+                    <flux:modal.trigger name="record-delivery">
+                        <flux:button icon="truck">Record Delivery Entry</flux:button>
+                    </flux:modal.trigger>
+                </div>
+
             </div>
 
-            <flux:table class="mt-4">
+            <flux:table class="mt-4" :paginate="$this->deliveries">
                 <flux:table.columns>
                     <flux:table.column>Date</flux:table.column>
                     <flux:table.column>Name</flux:table.column>
