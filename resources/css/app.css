@@ -76,9 +76,9 @@ select:focus[data-flux-control] {
 }
 
 .autoComplete_wrapper > input::placeholder {
-    font-size: 0.85rem !important;
+    font-size: 0.9rem !important;
     color: #444 !important;
-    opacity: 1 !important;
+    opacity: 0.6 !important;
 }
 
 .autoComplete_wrapper > ul > li mark {

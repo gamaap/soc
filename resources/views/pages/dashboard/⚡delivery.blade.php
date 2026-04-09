@@ -12,6 +12,7 @@ new class extends Component
     public $name;
     public $company;
     public $visiting;
+    public $card_number;
     public $license_plate;
     public $purpose;
     public $deliveryId = null;
@@ -64,6 +65,7 @@ new class extends Component
             'company' => $this->company,
             'visiting' => $this->visiting,
             'license_plate' => $this->license_plate,
+            'card_number' => $this->card_number,
             'purpose' => $this->purpose,
             'date' => $now->toDateString(),
             'entry_time' => $now->format('H:i:s'),
@@ -235,6 +237,10 @@ new class extends Component
                                 <flux:text class="mt-2" variant="strong">{{ $this->delivery->entry_time }}</flux:text>
                             </div>
                             <div>
+                                <flux:heading>Card Number</flux:heading>
+                                <flux:text class="mt-2" variant="strong">{{ $this->delivery->card_number ?? '-' }}</flux:text>
+                            </div>
+                            <div>
                                 <flux:heading>Exit Time</flux:heading>
                                 @if ($this->delivery->exit_time)
                                     <flux:text class="mt-2" variant="strong">
@@ -288,9 +294,12 @@ new class extends Component
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div class="autoComplete_wrapper" wire:ignore>
-                                <flux:input wire:model="visiting" id="delivery-for" label="Delivery For" placeholder="Person being visited" autocomplete="off" />
+                                <flux:input wire:model="visiting" id="delivery-for" label="Delivery For" placeholder="Recipient Name" autocomplete="off" />
                             </div>
                             <flux:input wire:model="license_plate" label="License Plate (Optional)" placeholder="Enter License Plate" autocomplete="off" />
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <flux:input wire:model="card_number" type="number" label="Card Number" placeholder="Enter Card Number" autocomplete="off" />
                         </div>
                         
                         <div class="flex items-center justify-between mb-3">

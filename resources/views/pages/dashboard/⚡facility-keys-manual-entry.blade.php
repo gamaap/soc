@@ -31,17 +31,27 @@ new class extends Component
 
     public function loadDraftEntries()
     {
-        $this->draftEntries = DraftKeyBorrowingsEntry::with('facilityKey')
+        $query = DraftKeyBorrowingsEntry::where('user_id', auth()->id());
+
+        if ($this->selectedDate) {
+            $query->whereDate('date', $this->selectedDate);
+        }
+
+        $this->draftEntries = $query->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($entry) {
                 $entry->key_name = $entry->facilityKey->key_name ?? null;
                 return $entry;
             });
 
-        $this->completedEntries = KeyBorrowing::orderBy('created_at', 'desc')
-            ->whereNotNull('facility_key_id')
-            ->take(50)
-            ->get();
+        $completedQuery = KeyBorrowing::orderBy('created_at', 'desc')
+            ->whereNotNull('facility_key_id');
+
+        if ($this->selectedDate) {
+            $completedQuery->whereDate('date', $this->selectedDate);
+        }
+
+        $this->completedEntries = $completedQuery->take(50)->get();
     }
 
     public function addEntry()
@@ -57,6 +67,7 @@ new class extends Component
         ]);
 
         DraftKeyBorrowingsEntry::create([
+            'date' => $this->selectedDate,
             'vehicle_key_id' => null,
             'facility_key_id' => $this->selectedKey,
             'borrower_name' => $this->borrower_name,
@@ -85,10 +96,13 @@ new class extends Component
 
     public function submitAll()
     {
-        $drafts = DraftKeyBorrowingsEntry::where('user_id', auth()->id())->get();
+        $drafts = DraftKeyBorrowingsEntry::where('user_id', auth()->id())
+            ->whereDate('date', $this->selectedDate)
+            ->get();
 
         foreach ($drafts as $draft) {
             KeyBorrowing::create([
+                'date' => $draft->date,
                 'facility_key_id' => $draft->facility_key_id,
                 'borrower_name' => $draft->borrower_name,
                 'borrower_department' => $draft->borrower_department,
@@ -141,7 +155,7 @@ new class extends Component
 
     <div class="grid grid-cols-4 gap-2 items-end">
         <div class="col-span-3">
-            <flux:input wire:model="selectedDate" type="date" label="Select Date" class="w-full" />
+            <flux:input wire:model="selectedDate" type="date" label="Select Date" wire:change="loadDraftEntries" class="w-full" />
         </div>
         <div class="col-span-1">
             <flux:modal.trigger name="facility-keys-manual-entry">

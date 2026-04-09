@@ -13,4 +13,10 @@ class Breaks extends Model
     {
         return Carbon::parse($this->date)->format('d/m/Y');
     }
+
+    public function getActualReturnAttribute($value)
+    {
+        return $value ? Carbon::parse($value)->format('H:i') : null;
+    }
+    
 }

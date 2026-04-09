@@ -25,12 +25,22 @@ new class extends Component
 
     public function loadEntries()
     {
-        $this->draftEntries = DraftNightShiftEntry::where('user_id', auth()->id())
-            ->orderBy('created_at', 'desc')
+        $query = DraftNightShiftEntry::where('user_id', auth()->id());
+
+        if ($this->selectedDate) {
+            $query->whereDate('date', $this->selectedDate);
+        }
+
+        $this->draftEntries = $query->orderBy('created_at', 'desc')
             ->get();
 
-        $this->completedEntries = NightShift::orderBy('created_at', 'desc')
-            ->take(50)
+        $completedQuery = NightShift::orderBy('created_at', 'desc');
+
+        if ($this->selectedDate) {
+            $completedQuery->whereDate('date', $this->selectedDate);
+        }
+
+        $this->completedEntries = $completedQuery->take(50)
             ->get();
     }
 
@@ -50,9 +60,6 @@ new class extends Component
             $this->addError('employee', 'Employee not found.');
             return;
         }
-
-        // $actualArrival = $this->actualArrivalTime;
-        // $minutesLate = $this->calculateMinutesLate($standardArrival, $actualArrival);
 
         DraftNightShiftEntry::create([
             'date' => $this->selectedDate,
@@ -74,7 +81,9 @@ new class extends Component
 
     public function submitAll()
     {
-        $drafts = DraftNightShiftEntry::where('user_id', auth()->id())->get();
+        $drafts = DraftNightShiftEntry::where('user_id', auth()->id())
+            ->whereDate('date', $this->selectedDate)
+            ->get();
 
         foreach ($drafts as $draft) {
             NightShift::create([
@@ -115,18 +124,6 @@ new class extends Component
         DraftNightShiftEntry::find($id)?->delete();
         $this->loadEntries();
     }
-
-    // private function calculateMinutesLate($standard, $actual)
-    // {
-    //     $standardTime = strtotime($standard);
-    //     $actualTime = strtotime($actual);
-
-    //     if ($actualTime <= $standardTime) {
-    //         return 0;
-    //     }
-
-    //     return round(($actualTime - $standardTime) / 60);
-    // }
 };
 ?>
 
@@ -137,7 +134,7 @@ new class extends Component
         <div class="border border-accent p-6 rounded-2xl my-6">
             <div class="flex justify-between mb-8">
                 <div>
-                    <flux:heading>Manual Entry - Night Shift Check-In and Check-Out</flux:heading>
+                    <flux:heading>Manual Entry - Night Shift</flux:heading>
                     <flux:text class="mt-2">Manage draft and completed entries.</flux:text>
                 </div>
                 <div>
@@ -155,7 +152,7 @@ new class extends Component
 
             <div class="grid grid-cols-4 gap-2 items-end">
                 <div class="col-span-3">
-                    <flux:input wire:model="selectedDate" type="date" label="Select Date" class="w-full" />
+                    <flux:input wire:model="selectedDate" type="date" wire:change="loadEntries" label="Select Date" class="w-full" />
                 </div>
                 <div class="col-span-1">
                     <flux:modal.trigger name="night-shift-manual-entry">

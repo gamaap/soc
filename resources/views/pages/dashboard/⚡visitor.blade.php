@@ -12,17 +12,18 @@ new class extends Component
     public $company;
     public $visiting;
     public $license_plate;
+    public $card_number;
     public $purpose;
     public $visitorId = null;
     
     public function save()
     {
         $this->validate([
-            'name' => 'required|string|min:3',
+            'name' => 'required|string',
             'company' => 'nullable|min:3',
             'visiting' => 'required|string|min:3',
             'license_plate' => 'nullable|min:3',
-            'purpose' => 'nullable|max:500',
+            'purpose' => 'required|max:500',
         ]);
 
         $now = Carbon::now();
@@ -32,6 +33,7 @@ new class extends Component
             'company' => $this->company,
             'visiting' => $this->visiting,
             'license_plate' => $this->license_plate,
+            'card_number' => $this->card_number,
             'purpose' => $this->purpose,
             'date' => $now->toDateString(),
             'entry_time' => $now->format('H:i:s'),
@@ -178,6 +180,9 @@ new class extends Component
                             </div>
                             <flux:input wire:model="license_plate" label="License Plate (Optional)" placeholder="Enter License Plate" autocomplete="off" />
                         </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <flux:input wire:model="card_number" type="number" label="Card Number" placeholder="Enter Card Number" autocomplete="off" />
+                        </div>
                         <flux:textarea
                             wire:model="purpose"
                             label="Reason for Visit"
@@ -222,6 +227,10 @@ new class extends Component
                             <div>
                                 <flux:heading>Entry Time</flux:heading>
                                 <flux:text class="mt-2" variant="strong">{{ $this->visitor->entry_time }}</flux:text>
+                            </div>
+                            <div>
+                                <flux:heading>Card Number</flux:heading>
+                                <flux:text class="mt-2" variant="strong">{{ $this->visitor->card_number }}</flux:text>
                             </div>
                             <div>
                                 <flux:heading>Exit Time</flux:heading>

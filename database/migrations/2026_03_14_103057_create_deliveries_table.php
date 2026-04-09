@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('company')->nullable();
             $table->string('visiting');
             $table->string('license_plate')->nullable();
+            $table->integer('card_number')->nullable();
             $table->date('date');
             $table->text('purpose');
             $table->time('entry_time');

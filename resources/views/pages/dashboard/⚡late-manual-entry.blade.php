@@ -5,6 +5,7 @@ use App\Models\Late;
 use App\Models\SuperappEmployee;
 use Carbon\Carbon;
 use Livewire\Component;
+use Livewire\Attributes\Computed;
 
 new class extends Component
 {
@@ -24,13 +25,28 @@ new class extends Component
 
     public function loadEntries()
     {
-        $this->draftEntries = DraftLateEntry::where('user_id', auth()->id())
-            ->orderBy('created_at', 'desc')
+        $query = DraftLateEntry::where('user_id', auth()->id());
+
+        if ($this->selectedDate) {
+            $query->whereDate('date', $this->selectedDate);
+        }
+
+        $this->draftEntries = $query->orderBy('created_at', 'desc')
             ->get();
 
-        $this->completedEntries = Late::orderBy('created_at', 'desc')
-            ->take(50)
+        $completedQuery = Late::orderBy('created_at', 'desc');
+
+        if ($this->selectedDate) {
+            $completedQuery->whereDate('date', $this->selectedDate);
+        }
+
+        $this->completedEntries = $completedQuery->take(50)
             ->get();
+    }
+
+    public function updatedSelectedDate(): void
+    {
+        $this->loadEntries();
     }
 
     public function addEntry()
@@ -73,7 +89,9 @@ new class extends Component
 
     public function submitAll()
     {
-        $drafts = DraftLateEntry::where('user_id', auth()->id())->get();
+        $drafts = DraftLateEntry::where('user_id', auth()->id())
+            ->whereDate('date', $this->selectedDate)
+            ->get();
 
         foreach ($drafts as $draft) {
             Late::create([
@@ -148,7 +166,7 @@ new class extends Component
             
             <div class="grid grid-cols-4 gap-2 items-end">
                 <div class="col-span-3">
-                    <flux:input wire:model="selectedDate" type="date" label="Select Date" class="w-full" />
+                    <flux:input wire:model="selectedDate" wire:change="loadEntries" type="date" label="Select Date" class="w-full" />
                 </div>
                 <div class="col-span-1">
                     <flux:modal.trigger name="late-manual-entry">

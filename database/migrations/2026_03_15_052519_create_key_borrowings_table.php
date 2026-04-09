@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('key_borrowings', function (Blueprint $table) {
             $table->id();
+            $table->date('date');
             $table->foreignId('vehicle_key_id')->nullable()->constrained()->cascadeOnDelete();
             $table->foreignId('facility_key_id')->nullable()->constrained()->cascadeOnDelete();
             $table->string('borrower_name');

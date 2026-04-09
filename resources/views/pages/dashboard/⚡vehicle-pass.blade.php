@@ -68,7 +68,9 @@ new class extends Component
             'created_by' => auth()->id(),
         ]);
 
-        $this->reset();
+        $this->reset(['name', 'department', 'license_plate', 'plateOptions']);
+
+        return redirect(request()->header('Referer'));
     }
 
     public function addLicensePlate()
@@ -524,7 +526,10 @@ new class extends Component
 
 <script src="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10.2.9/dist/autoComplete.min.js"></script>
 <script>
-    const autoCompleteJS = new autoComplete({
+    if (window.autoCompleteJS) {
+        window.autoCompleteJS.destroy();
+    }
+    window.autoCompleteJS = new autoComplete({
         selector: "#employee-vehicle-master",
         data: {
             src: async (query) => {
@@ -550,7 +555,7 @@ new class extends Component
                 selection: (event) => {
                     const selection = event.detail.selection.value;
 
-                    autoCompleteJS.input.value = selection.fullname;
+                    window.autoCompleteJS.input.value = selection.fullname;
                     $wire.set('employeeMaster', selection.fullname);
                     $wire.set('departmentMaster', selection.department?.name ?? '');
                 }
@@ -558,7 +563,10 @@ new class extends Component
         }
     });
 
-    const autoCompleteJS2 = new autoComplete({
+    if (window.autoCompleteJS2) {
+        window.autoCompleteJS2.destroy();
+    }
+    window.autoCompleteJS2 = new autoComplete({
         selector: "#employee-vehicle-pass",
         data: {
             src: async (query) => {
@@ -584,7 +592,7 @@ new class extends Component
                 selection: (event) => {
                     const selection = event.detail.selection.value;
 
-                    autoCompleteJS2.input.value = selection.employee_name;
+                    window.autoCompleteJS2.input.value = selection.employee_name;
                     $wire.set('name', selection.employee_name);
                     $wire.set('department', selection.department);
 
@@ -604,7 +612,10 @@ new class extends Component
         }
     });
 
-    const autoCompleteJS3 = new autoComplete({
+    if (window.autoCompleteJS3) {
+        window.autoCompleteJS3.destroy();
+    }
+    window.autoCompleteJS3 = new autoComplete({
         selector: "#license-vehicle-pass",
         threshold: 1,
         data: {
@@ -638,7 +649,7 @@ new class extends Component
                 selection: (event) => {
                     const selection = event.detail.selection.value;
 
-                    autoCompleteJS3.input.value = selection.license_plate;
+                    window.autoCompleteJS3.input.value = selection.license_plate;
                     $wire.set('license_plate', selection.license_plate);
                     $wire.set('name', selection.employee_name);
                     $wire.set('department', selection.department);

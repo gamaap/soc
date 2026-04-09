@@ -134,6 +134,7 @@ new class extends Component
             ->whereNull('security_departed_time')
             ->whereNull('ending_km')
             ->whereNull('security_returned_time')
+            ->whereIn('status', ['Assigned', 'In Transit', 'Completed'])
             ->with([
                 'drivers.driver',
                 'car',

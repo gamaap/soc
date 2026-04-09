@@ -28,12 +28,22 @@ new class extends Component
 
     public function loadEntries()
     {
-        $this->draftEntries = DraftVisitorEntry::where('user_id', auth()->id())
-            ->orderBy('created_at', 'desc')
+        $query = DraftVisitorEntry::where('user_id', auth()->id());
+
+        if ($this->selectedDate) {
+            $query->whereDate('date', $this->selectedDate);
+        }
+
+        $this->draftEntries = $query->orderBy('created_at', 'desc')
             ->get();
 
-        $this->completedEntries = Visitor::orderBy('created_at', 'desc')
-            ->take(50)
+        $completedQuery = Visitor::orderBy('created_at', 'desc');
+
+        if ($this->selectedDate) {
+            $completedQuery->whereDate('date', $this->selectedDate);
+        }
+
+        $this->completedEntries = $completedQuery->take(50)
             ->get();
     }
 
@@ -72,7 +82,9 @@ new class extends Component
 
     public function submitAll()
     {
-        $drafts = DraftVisitorEntry::where('user_id', auth()->id())->get();
+        $drafts = DraftVisitorEntry::where('user_id', auth()->id())
+            ->whereDate('date', $this->selectedDate)
+            ->get();
 
         foreach ($drafts as $draft) {
             Visitor::create([
@@ -137,7 +149,7 @@ new class extends Component
 
             <div class="grid grid-cols-4 gap-2 items-end">
                 <div class="col-span-3">
-                    <flux:input wire:model="selectedDate" type="date" label="Select Date" class="w-full" />
+                    <flux:input wire:model="selectedDate" type="date" wire:change="loadEntries" label="Select Date" class="w-full" />
                 </div>
                 <div class="col-span-1">
                     <flux:modal.trigger name="visitor-manual-entry">
