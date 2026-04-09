@@ -13,4 +13,9 @@ class Late extends Model
     {
         return Carbon::parse($this->date)->format('d/m/Y');
     }
+
+    public function getFormattedTimeAttribute()
+    {
+        return Carbon::parse($this->actual_arrival)->format('H:i');
+    }
 }

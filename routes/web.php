@@ -1,5 +1,9 @@
 <?php
 
+use App\Models\SuperappDepartment;
+use App\Models\SuperappDivision;
+use App\Models\SuperappEmployee;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'pages::auth.login')->name('login')->middleware('guest');
@@ -14,6 +18,74 @@ Route::middleware(['auth'])->group(function () {
     Route::livewire('dashboard/vehicle-pass', 'pages::dashboard.vehicle-pass')->name('dashboard.vehicle-pass');
     Route::livewire('dashboard/keys/vehicle', 'pages::dashboard.vehicle-keys')->name('dashboard.keys.vehicle');
     Route::livewire('dashboard/keys/facility', 'pages::dashboard.facility-keys')->name('dashboard.keys.facility');
+
+    Route::livewire('dashboard/late/manual-entry', 'pages::dashboard.late-manual-entry')->name('dashboard.late-manual-entry');
+    Route::livewire('dashboard/break/manual-entry', 'pages::dashboard.break-manual-entry')->name('dashboard.break-manual-entry');
+    Route::livewire('dashboard/night-shift/manual-entry', 'pages::dashboard.night-shift-manual-entry')->name('dashboard.night-shift-manual-entry');
+    Route::livewire('dashboard/visitor/manual-entry', 'pages::dashboard.visitor-manual-entry')->name('dashboard.visitor-manual-entry');
+    Route::livewire('dashboard/delivery/manual-entry', 'pages::dashboard.delivery-manual-entry')->name('dashboard.delivery-manual-entry');
+    Route::livewire('dashboard/vehicle-pass/manual-entry', 'pages::dashboard.vehicle-pass-manual-entry')->name('dashboard.vehicle-pass-manual-entry');
+    Route::livewire('dashboard/vehicle-pass/employee-pass/manual-entry', 'pages::dashboard.employee-pass-manual-entry')->name('dashboard.employee-pass-manual-entry');
+    Route::livewire('dashboard/keys/vehicle/manual-entry', 'pages::dashboard.vehicle-keys-manual-entry')->name('dashboard.vehicle-keys-manual-entry');
+    Route::livewire('dashboard/keys/facility/manual-entry', 'pages::dashboard.facility-keys-manual-entry')->name('dashboard.keys.facility-manual-entry');
 });
+
+Route::get('/employees/api', function (Request $request) {
+    $search = $request->query('search');
+
+    return SuperappEmployee::where('is_delete', '=', false)
+        ->where('is_active', '=', true)
+        ->where('plant_id', '=', 1)
+        ->when($search, function ($query) use ($search) {
+            $query->whereRaw(
+                'LOWER(fullname) LIKE ?', 
+                ['%' . strtolower($search) . '%']
+            );
+        })
+        ->orderBy('fullname')
+        ->with([
+            'department:id,name',
+            'division:id,name'
+        ])
+        ->get([
+            'id',
+            'fullname',
+            'username',
+            'departement_id',
+            'division_id',
+            'employee_id',
+            'nik',
+            'photo'
+        ]);
+})->middleware('auth');
+
+Route::get('/employee-master/api', function (Request $request) {
+    $search = $request->query('search');
+
+    $models = App\Models\EmployeeMasterPass::query()
+        ->when($search, function ($query) use ($search) {
+            $query->where(function ($sub) use ($search) {
+                $sub->where('employee_name', 'ILIKE', "%{$search}%")
+                    ->orWhere('license_plate', 'ILIKE', "%{$search}%");
+            });
+        })
+        ->get();
+
+    return $models->groupBy('employee_name')->map(function ($group, $name) {
+        return [
+            'employee_name' => $name,
+            'department' => $group->first()->department,
+            'license_plates' => $group->pluck('license_plate')->unique()->values()->toArray(),
+        ];
+    })->values();
+})->middleware('auth');
+
+Route::get('/departments/api', function() {
+    return SuperappDepartment::all();
+})->middleware('auth');
+
+Route::get('/divisions/api', function() {
+    return SuperappDivision::all();
+})->middleware('auth');
 
 require __DIR__.'/settings.php';

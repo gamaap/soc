@@ -17,4 +17,14 @@ class Visitor extends Model
     {
         return Carbon::parse($this->date)->format('d/m/Y');
     }
+
+    public function getEntryTimeAttribute($value)
+    {
+        return $value ? Carbon::parse($value)->format('H:i') : null;
+    }
+
+    public function getExitTimeAttribute($value)
+    {
+        return $value ? Carbon::parse($value)->format('H:i') : null;
+    }
 }

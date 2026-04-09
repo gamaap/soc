@@ -63,6 +63,30 @@ select:focus[data-flux-control] {
     @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
 }
 
+.autoComplete_wrapper {
+    width: 100% !important;
+    position: relative !important;
+}
+
+.autoComplete_wrapper > input {
+    color: #444 !important;
+    width: 100% !important;
+    background-color: white !important;
+    border-radius: 0.4rem !important;
+}
+
+.autoComplete_wrapper > input::placeholder {
+    font-size: 0.9rem !important;
+    color: #444 !important;
+    opacity: 0.6 !important;
+}
+
+.autoComplete_wrapper > ul > li mark {
+    background-color: transparent !important;
+    color: #333 !important;
+    font-weight: 700 !important;
+}
+
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */

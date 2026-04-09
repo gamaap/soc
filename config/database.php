@@ -114,6 +114,32 @@ return [
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
 
+        'superapp' => [
+            'driver' => 'pgsql',
+            'host' => env('DB_SUPERAPP_HOST'),
+            'port' => env('DB_SUPERAPP_PORT'),
+            'database' => env('DB_SUPERAPP_DATABASE'),
+            'username' => env('DB_SUPERAPP_USERNAME'),
+            'password' => env('DB_SUPERAPP_PASSWORD'),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'schema' => 'public',
+            'sslmode' => 'prefer',
+        ],
+
+        'rfid' => [
+            'driver' => 'pgsql',
+            'host' => env('DB_RFID_HOST'),
+            'port' => env('DB_RFID_PORT'),
+            'database' => env('DB_RFID_DATABASE'),
+            'username' => env('DB_RFID_USERNAME'),
+            'password' => env('DB_RFID_PASSWORD'),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'schema' => 'public',
+            'sslmode' => 'prefer',
+        ],
+
     ],
 
     /*
