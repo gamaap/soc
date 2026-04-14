@@ -17,6 +17,6 @@ class Logout
         Session::invalidate();
         Session::regenerateToken();
 
-        return redirect()->route('login');
+        return redirect('https://superapp.ewindo.co.id/');
     }
 }
