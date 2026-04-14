@@ -116,11 +116,11 @@ return [
 
         'superapp' => [
             'driver' => 'pgsql',
-            'host' => env('DB_SUPERAPP_HOST', '192.168.9.204'),
-            'port' => env('DB_SUPERAPP_PORT', '5432'),
-            'database' => env('DB_SUPERAPP_DATABASE', 'production_superapp'),
-            'username' => env('DB_SUPERAPP_USERNAME', 'production_superapp'),
-            'password' => env('DB_SUPERAPP_PASSWORD', 'Sup3r4pP3w1ndo@68'),
+            'host' => '192.168.9.204',
+            'port' => '5432',
+            'database' => 'production_superapp',
+            'username' => 'production_superapp',
+            'password' => 'Sup3r4pP3w1ndo@68',
             'charset' => 'utf8',
             'prefix' => '',
             'schema' => 'public',
