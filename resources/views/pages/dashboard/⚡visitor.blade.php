@@ -114,6 +114,7 @@ new class extends Component
                     <flux:table.column>Company</flux:table.column>
                     <flux:table.column>Visiting</flux:table.column>
                     <flux:table.column>License Plate</flux:table.column>
+                    <flux:table.column>Card Number</flux:table.column>
                     <flux:table.column>Entry Time</flux:table.column>
                     <flux:table.column>Exit Time</flux:table.column>
                     <flux:table.column></flux:table.column>
@@ -127,6 +128,7 @@ new class extends Component
                             <flux:table.cell>{{ $visitor->company ?? '-'}}</flux:table.cell>
                             <flux:table.cell>{{ $visitor->visiting }}</flux:table.cell>
                             <flux:table.cell>{{ $visitor->license_plate ?? '-' }}</flux:table.cell>
+                            <flux:table.cell>{{ $visitor->card_number ?? '-' }}</flux:table.cell>
                             <flux:table.cell>{{ $visitor->entry_time }}</flux:table.cell>
                             <flux:table.cell>
                                 @if (! $visitor->exit_time)
