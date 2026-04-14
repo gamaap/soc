@@ -40,7 +40,7 @@ class SsoController extends Controller
         if (!$superappUser) abort(403, 'User not found');
 
         // Find or create user in soc database
-        $user = User::where('email', 'security@ewindo.com')->first();
+        $user = User::where('email', 'adminsecurity@ewindo.com')->first();
 
         if (!$user) {
             $user = User::create([
