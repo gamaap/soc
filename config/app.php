@@ -13,11 +13,7 @@ return [
     |
     */
 
-<<<<<<< HEAD
     'name' => env('APP_NAME', 'SOC'),
-=======
-    'name' => env('APP_NAME', 'Laravel'),
->>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
 
     /*
     |--------------------------------------------------------------------------
@@ -30,11 +26,7 @@ return [
     |
     */
 
-<<<<<<< HEAD
     'env' => env('APP_ENV', 'local'),
-=======
-    'env' => env('APP_ENV', 'production'),
->>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
 
     /*
     |--------------------------------------------------------------------------
@@ -105,11 +97,7 @@ return [
 
     'cipher' => 'AES-256-CBC',
 
-<<<<<<< HEAD
     'key' => 'base64:H3OGvoIoeXoY99pD3YViPdcGFoziNVEPKqFtQtl+TBs=',
-=======
-    'key' => env('APP_KEY'),
->>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
 
     'previous_keys' => [
         ...array_filter(

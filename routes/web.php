@@ -1,18 +1,12 @@
 <?php
 
-<<<<<<< HEAD
-=======
 use App\Http\Controllers\Auth\SsoController;
->>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
 use App\Models\SuperappDepartment;
 use App\Models\SuperappDivision;
 use App\Models\SuperappEmployee;
 use Illuminate\Http\Request;
-<<<<<<< HEAD
-=======
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
->>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
 use Illuminate\Support\Facades\Route;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
@@ -31,10 +25,7 @@ Route::middleware(['auth'])->group(function () {
     Route::livewire('dashboard/vehicle-pass', 'pages::dashboard.vehicle-pass')->name('dashboard.vehicle-pass');
     Route::livewire('dashboard/keys/vehicle', 'pages::dashboard.vehicle-keys')->name('dashboard.keys.vehicle');
     Route::livewire('dashboard/keys/facility', 'pages::dashboard.facility-keys')->name('dashboard.keys.facility');
-<<<<<<< HEAD
-=======
     Route::livewire('dashboard/keys/box', 'pages::dashboard.box-keys')->name('dashboard.keys.box');
->>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
 
     Route::livewire('dashboard/late/manual-entry', 'pages::dashboard.late-manual-entry')->name('dashboard.late-manual-entry');
     Route::livewire('dashboard/break/manual-entry', 'pages::dashboard.break-manual-entry')->name('dashboard.break-manual-entry');
@@ -55,7 +46,7 @@ Route::get('/employees/api', function (Request $request) {
         ->where('plant_id', '=', 1)
         ->when($search, function ($query) use ($search) {
             $query->whereRaw(
-                'LOWER(fullname) LIKE ?', 
+                'LOWER(fullname) LIKE ?',
                 ['%' . strtolower($search) . '%']
             );
         })
@@ -97,7 +88,7 @@ Route::get('/employee-master/api', function (Request $request) {
     })->values();
 })->middleware('auth');
 
-Route::get('/departments/api', function() {
+Route::get('/departments/api', function () {
     return SuperappDepartment::all();
 })->middleware('auth');
 
@@ -125,8 +116,8 @@ Route::get('/proxy/employee-photo', function (Request $request) {
         ->header('Cache-Control', 'public, max-age=21600');
 })->middleware('auth');
 
-Route::get('/divisions/api', function() {
+Route::get('/divisions/api', function () {
     return SuperappDivision::all();
 })->middleware('auth');
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';

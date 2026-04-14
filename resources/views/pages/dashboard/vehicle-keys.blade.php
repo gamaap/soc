@@ -72,11 +72,7 @@ new class extends Component
         }
 
         KeyBorrowing::create([
-<<<<<<< HEAD
-			'date' => today(),
-=======
             'date' => today(),
->>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
             'vehicle_key_id' => $this->keyId,
             'borrower_name' => $this->borrower_name,
             'borrower_department' => $this->borrower_department,
@@ -192,7 +188,8 @@ new class extends Component
             <flux:text class="mt-2">Manage keys for company vehicles.</flux:text>
         </div>
         <div class="flex items-center justify-end gap-2">
-            <flux:button variant="outline" href="{{ route('dashboard.vehicle-keys-manual-entry') }}" wire:current="dashboard.vehicle-keys-manual-entry" wire:navigate>
+            <flux:button variant="outline" href="{{ route('dashboard.vehicle-keys-manual-entry') }}"
+                wire:current="dashboard.vehicle-keys-manual-entry" wire:navigate>
                 <flux:icon.plus variant="micro" /> Manual Entry
             </flux:button>
             <flux:modal.trigger name="add-vehicle-key">
@@ -201,7 +198,7 @@ new class extends Component
         </div>
     </div>
 
-     <flux:table class="mt-4" :paginate="$this->vehicleKeys">
+    <flux:table class="mt-4" :paginate="$this->vehicleKeys">
         <flux:table.columns>
             <flux:table.column>Vehicle Number</flux:table.column>
             <flux:table.column>Car Type</flux:table.column>
@@ -214,63 +211,50 @@ new class extends Component
 
         <flux:table.rows>
             @forelse ($this->vehicleKeys as $key)
-                <flux:table.row>
-                    <flux:table.cell>{{ $key->vehicle_number }}</flux:table.cell>
-                    <flux:table.cell>{{ $key->vehicle_type }}</flux:table.cell>
-                    <flux:table.cell>{{ $key->total_keys }}</flux:table.cell>
-                    <flux:table.cell>{{ $key->available }}</flux:table.cell>
-                    <flux:table.cell>
-                        @if ($key->available === $key->total_keys)
-                            <flux:badge size="sm" color="green">Available</flux:badge>
-                        @elseif ($key->available === 0)
-                            <flux:badge size="sm" color="red">All Borrowed</flux:badge>
-                        @else
-                            <flux:badge size="sm" color="yellow">Partially Borrowed</flux:badge>
-                        @endif
-                    </flux:table.cell>
-                    <flux:table.cell class="flex gap-2" class="flex gap-2">
-                        @if ($key->available > 0)
-                            <flux:button 
-                                icon="hand-helping" 
-                                size="sm"
-                                wire:click="openBorrowModal({{ $key->id }})"
-                                wire:target="openBorrowModal({{ $key->id }})"
-                            >
-                                Borrow
-                            </flux:button>
-                        @endif
+            <flux:table.row>
+                <flux:table.cell>{{ $key->vehicle_number }}</flux:table.cell>
+                <flux:table.cell>{{ $key->vehicle_type }}</flux:table.cell>
+                <flux:table.cell>{{ $key->total_keys }}</flux:table.cell>
+                <flux:table.cell>{{ $key->available }}</flux:table.cell>
+                <flux:table.cell>
+                    @if ($key->available === $key->total_keys)
+                    <flux:badge size="sm" color="green">Available</flux:badge>
+                    @elseif ($key->available === 0)
+                    <flux:badge size="sm" color="red">All Borrowed</flux:badge>
+                    @else
+                    <flux:badge size="sm" color="yellow">Partially Borrowed</flux:badge>
+                    @endif
+                </flux:table.cell>
+                <flux:table.cell class="flex gap-2" class="flex gap-2">
+                    @if ($key->available > 0)
+                    <flux:button icon="hand-helping" size="sm" wire:click="openBorrowModal({{ $key->id }})"
+                        wire:target="openBorrowModal({{ $key->id }})">
+                        Borrow
+                    </flux:button>
+                    @endif
 
-                        @if ($key->available < $key->total_keys)
-                            <flux:button 
-                                icon="undo-2" 
-                                size="sm"
-                                variant="primary"
-                                wire:click="openReturnModal({{ $key->id }})"
-                                wire:target="openReturnModal({{ $key->id }})"
-                            >
-                                Return
-                            </flux:button>
-                        @endif
-                    </flux:table.cell>
-                    <flux:table.cell>
-                        <flux:button 
-                            icon="eye" 
-                            variant="ghost" 
-                            size="sm" 
-                            wire:click="showHistory({{ $key->id }})"
-                            wire:target="showHistory({{ $key->id }})">
-                            View
+                    @if ($key->available < $key->total_keys)
+                        <flux:button icon="undo-2" size="sm" variant="primary"
+                            wire:click="openReturnModal({{ $key->id }})" wire:target="openReturnModal({{ $key->id }})">
+                            Return
                         </flux:button>
-                    </flux:table.cell>
-                </flux:table.row>
+                        @endif
+                </flux:table.cell>
+                <flux:table.cell>
+                    <flux:button icon="eye" variant="ghost" size="sm" wire:click="showHistory({{ $key->id }})"
+                        wire:target="showHistory({{ $key->id }})">
+                        View
+                    </flux:button>
+                </flux:table.cell>
+            </flux:table.row>
             @empty
-                <flux:table.row>
-                    <flux:table.cell colspan="6" class="text-center py-6">
-                        <flux:text class="text-zinc-400 italic">
-                            No vehicle key transaction record available.
-                        </flux:text>
-                    </flux:table.cell>
-                </flux:table.row>
+            <flux:table.row>
+                <flux:table.cell colspan="6" class="text-center py-6">
+                    <flux:text class="text-zinc-400 italic">
+                        No vehicle key transaction record available.
+                    </flux:text>
+                </flux:table.cell>
+            </flux:table.row>
             @endforelse
         </flux:table.rows>
     </flux:table>
@@ -301,7 +285,8 @@ new class extends Component
                     <flux:text class="mt-2">Record key for borrowing details.</flux:text>
                 </div>
                 <div class="autoComplete_wrapper" wire:ignore>
-                    <flux:input id="borrower-name-vehicle" wire:model="borrower_name" label="Borrower Name" autocomplete="off" />
+                    <flux:input id="borrower-name-vehicle" wire:model="borrower_name" label="Borrower Name"
+                        autocomplete="off" />
                 </div>
                 <flux:input wire:model="borrower_department" autocomplete="off" label="Department" readonly />
                 <div class="flex">
@@ -321,46 +306,49 @@ new class extends Component
                 </div>
 
                 @if($this->currentBorrow && count($this->currentBorrow) > 1)
-                    <div class="bg-blue-500/10 border border-blue-500/20 p-4 rounded-lg">
-                        <flux:text class="text-blue-400 font-semibold mb-2">Currently Borrowed Keys</flux:text>
+                <div class="bg-blue-500/10 border border-blue-500/20 p-4 rounded-lg">
+                    <flux:text class="text-blue-400 font-semibold mb-2">Currently Borrowed Keys</flux:text>
+                    @foreach($this->currentBorrow as $borrowing)
+                    <div class="text-sm mb-2">
+                        <flux:text class="font-medium">{{ $borrowing->borrower_name }}</flux:text>
+                        <flux:text class="text-xs text-gray-400">
+                            {{ $borrowing->borrower_department }} ·
+                            {{ \Carbon\Carbon::parse($borrowing->borrowed_at)->format('H:i') }}
+                        </flux:text>
+                    </div>
+                    @endforeach
+                </div>
+                <div>
+                    <flux:label>Select Key to Return</flux:label>
+                    <flux:select wire:model="selectedBorrowingId" class="mt-2">
+                        <flux:select.option value="">-- Select a key --</flux:select.option>
                         @foreach($this->currentBorrow as $borrowing)
-                            <div class="text-sm mb-2">
-                                <flux:text class="font-medium">{{ $borrowing->borrower_name }}</flux:text>
-                                <flux:text class="text-xs text-gray-400">
-                                    {{ $borrowing->borrower_department }} · 
-                                    {{ \Carbon\Carbon::parse($borrowing->borrowed_at)->format('H:i') }}
-                                </flux:text>
-                            </div>
+                        <flux:select.option value="{{ $borrowing->id }}">
+                            {{ $borrowing->borrower_name }} ({{ $borrowing->borrower_department }}) - {{
+                            \Carbon\Carbon::parse($borrowing->borrowed_at)->format('H:i') }}
+                        </flux:select.option>
                         @endforeach
-                    </div>
-                    <div>
-                        <flux:label>Select Key to Return</flux:label>
-                        <flux:select wire:model="selectedBorrowingId" class="mt-2">
-                            <flux:select.option value="">-- Select a key --</flux:select.option>
-                            @foreach($this->currentBorrow as $borrowing)
-                                <flux:select.option value="{{ $borrowing->id }}">
-                                    {{ $borrowing->borrower_name }} ({{ $borrowing->borrower_department }}) - {{ \Carbon\Carbon::parse($borrowing->borrowed_at)->format('H:i') }}
-                                </flux:select.option>
-                            @endforeach
-                        </flux:select>
-                        @error('selectedBorrowingId')
-                            <span class="text-red-500 text-sm">{{ $message }}</span>
-                        @enderror
-                    </div>
+                    </flux:select>
+                    @error('selectedBorrowingId')
+                    <span class="text-red-500 text-sm">{{ $message }}</span>
+                    @enderror
+                </div>
                 @elseif($this->currentBorrower)
-                    <div class="bg-blue-500/10 border border-blue-500/20 p-4 rounded-lg">
-                        <flux:text class="text-blue-400 font-semibold mb-2">Currently Borrowed By</flux:text>
-                        <flux:text class="font-medium">{{ $this->currentBorrower->borrower_name }}</flux:text>
-                        <flux:text class="text-sm text-gray-400">{{ $this->currentBorrower->borrower_department }} - {{ \Carbon\Carbon::parse($this->currentBorrower->borrowed_at)->format('H:i') }}</flux:text>
-                        <input type="hidden" wire:model="selectedBorrowingId" value="{{ $this->currentBorrower->id }}">
-                        @error('selectedBorrowingId')
-                            <span class="text-red-500 text-sm">{{ $message }}</span>
-                        @enderror
-                    </div>
+                <div class="bg-blue-500/10 border border-blue-500/20 p-4 rounded-lg">
+                    <flux:text class="text-blue-400 font-semibold mb-2">Currently Borrowed By</flux:text>
+                    <flux:text class="font-medium">{{ $this->currentBorrower->borrower_name }}</flux:text>
+                    <flux:text class="text-sm text-gray-400">{{ $this->currentBorrower->borrower_department }} - {{
+                        \Carbon\Carbon::parse($this->currentBorrower->borrowed_at)->format('H:i') }}</flux:text>
+                    <input type="hidden" wire:model="selectedBorrowingId" value="{{ $this->currentBorrower->id }}">
+                    @error('selectedBorrowingId')
+                    <span class="text-red-500 text-sm">{{ $message }}</span>
+                    @enderror
+                </div>
                 @endif
 
                 <div class="autoComplete_wrapper" wire:ignore>
-                    <flux:input wire:model="returned_name" id="returned-name-vehicle" autocomplete="off" label="Return Person Name" />
+                    <flux:input wire:model="returned_name" id="returned-name-vehicle" autocomplete="off"
+                        label="Return Person Name" />
                 </div>
                 <flux:input wire:model="returned_department" label="Department" autocomplete="off" />
                 <div class="flex">
@@ -378,27 +366,27 @@ new class extends Component
                 <flux:text class="mt-2">{{ $this->key?->vehicle_number }} - {{ $this->key?->vehicle_type }}</flux:text>
             </div>
             @if($this->currentBorrower)
-                <div class="bg-red-500/10 border border-red-500/20 p-4 rounded-lg">            
-                    <flux:text class="text-red-400">Currently Borrowed By</flux:text>
-                    
-                    <flux:heading size="lg">
-                        {{ $this->currentBorrower->borrower_name }}
-                    </flux:heading>
+            <div class="bg-red-500/10 border border-red-500/20 p-4 rounded-lg">
+                <flux:text class="text-red-400">Currently Borrowed By</flux:text>
 
-                    <flux:text size="sm" variant="strong">
-                        Borrowed at {{ \Carbon\Carbon::parse($this->currentBorrower->borrowed_at)->format('H:i') }}
-                    </flux:text>
-                </div>
+                <flux:heading size="lg">
+                    {{ $this->currentBorrower->borrower_name }}
+                </flux:heading>
+
+                <flux:text size="sm" variant="strong">
+                    Borrowed at {{ \Carbon\Carbon::parse($this->currentBorrower->borrowed_at)->format('H:i') }}
+                </flux:text>
+            </div>
             @else
-                <div class="bg-green-500/10 border border-green-500/20 p-4 rounded-lg">
-                    
-                    <flux:text class="text-green-400">Key Status</flux:text>
+            <div class="bg-green-500/10 border border-green-500/20 p-4 rounded-lg">
 
-                    <flux:heading size="lg">
-                        All Keys Available
-                    </flux:heading>
+                <flux:text class="text-green-400">Key Status</flux:text>
 
-                </div>
+                <flux:heading size="lg">
+                    All Keys Available
+                </flux:heading>
+
+            </div>
             @endif
             <div class="bg-gray-400/5 p-4 rounded-lg flex flex-row justify-between">
                 <div>
@@ -410,7 +398,7 @@ new class extends Component
                 <div>
                     <flux:text class="mt-2">Currently Borrowed</flux:text>
                     @php
-                        $borrowed = $this->key ? $this->key->total_keys - $this->key->available : 0;
+                    $borrowed = $this->key ? $this->key->total_keys - $this->key->available : 0;
                     @endphp
                     <flux:heading size="xl" class="text-center {{ $borrowed > 0 ? 'text-red-500' : 'text-green-500' }}">
                         {{ $borrowed }}
@@ -418,7 +406,8 @@ new class extends Component
                 </div>
                 <div>
                     <flux:text class="mt-2">Available</flux:text>
-                    <flux:heading size="xl" class="text-center {{ ($this->key?->available ?? 0) > 0 ? 'text-green-500' : 'text-red-500' }}">
+                    <flux:heading size="xl"
+                        class="text-center {{ ($this->key?->available ?? 0) > 0 ? 'text-green-500' : 'text-red-500' }}">
                         {{ $this->key?->available }}
                     </flux:heading>
                 </div>
@@ -427,46 +416,46 @@ new class extends Component
                 <flux:heading size="lg">Transaction History</flux:heading>
             </div>
             @forelse ($this->histories as $history)
-                <div class="p-3 border border-accent rounded-lg">
-                    <div class="grid grid-cols-2 gap-6">
-                        <div>
-                            <flux:heading>Borrower</flux:heading>
-                            <flux:text class="mt-2" variant="strong">{{ $history->borrower_name }}</flux:text>
-                        </div>
-                        <div>
-                            <flux:heading>Borrow Department</flux:heading>
-                            <flux:text class="mt-2" variant="strong">{{ $history->borrower_department }}</flux:text>
-                        </div>
+            <div class="p-3 border border-accent rounded-lg">
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <flux:heading>Borrower</flux:heading>
+                        <flux:text class="mt-2" variant="strong">{{ $history->borrower_name }}</flux:text>
                     </div>
-                    <div class="grid grid-cols-2 gap-6 my-4">
-                        <div>
-                            <flux:heading>Borrow Time</flux:heading>
-                            <flux:text class="mt-2" variant="strong">{{ $history->borrowed_at }}</flux:text>
-                        </div>
-                        <div>
-                            <flux:heading>Return Person</flux:heading>
-                            <flux:text class="mt-2" variant="strong">{{ $history->returned_name ?? '-' }}</flux:text>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-6">
-                        <div>
-                            <flux:heading>Return Department</flux:heading>
-                            <flux:text class="mt-2" variant="strong">{{ $history->returned_department ?? '-' }}</flux:text>
-                        </div>
-                        <div>
-                            <flux:heading>Return Time</flux:heading>
-                            @if ($history->returned_at)
-                                <flux:text class="mt-2" variant="strong">
-                                    {{ $history->returned_at }}
-                                </flux:text>
-                            @else
-                                <flux:badge color="red" size="sm" class="my-2">Not Returned</flux:badge>
-                            @endif
-                        </div>
+                    <div>
+                        <flux:heading>Borrow Department</flux:heading>
+                        <flux:text class="mt-2" variant="strong">{{ $history->borrower_department }}</flux:text>
                     </div>
                 </div>
+                <div class="grid grid-cols-2 gap-6 my-4">
+                    <div>
+                        <flux:heading>Borrow Time</flux:heading>
+                        <flux:text class="mt-2" variant="strong">{{ $history->borrowed_at }}</flux:text>
+                    </div>
+                    <div>
+                        <flux:heading>Return Person</flux:heading>
+                        <flux:text class="mt-2" variant="strong">{{ $history->returned_name ?? '-' }}</flux:text>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <flux:heading>Return Department</flux:heading>
+                        <flux:text class="mt-2" variant="strong">{{ $history->returned_department ?? '-' }}</flux:text>
+                    </div>
+                    <div>
+                        <flux:heading>Return Time</flux:heading>
+                        @if ($history->returned_at)
+                        <flux:text class="mt-2" variant="strong">
+                            {{ $history->returned_at }}
+                        </flux:text>
+                        @else
+                        <flux:badge color="red" size="sm" class="my-2">Not Returned</flux:badge>
+                        @endif
+                    </div>
+                </div>
+            </div>
             @empty
-                <flux:text class="mt-2 text-center italic">There is no transaction for this key.</flux:text>
+            <flux:text class="mt-2 text-center italic">There is no transaction for this key.</flux:text>
             @endforelse
         </div>
     </flux:modal>

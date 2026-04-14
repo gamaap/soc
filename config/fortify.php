@@ -144,11 +144,7 @@ return [
     */
 
     'features' => [
-<<<<<<< HEAD
         // Features::registration(),
-=======
-        Features::registration(),
->>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
         Features::resetPasswords(),
         // Features::emailVerification(),
         Features::twoFactorAuthentication([
