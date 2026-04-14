@@ -5,6 +5,8 @@ use App\Models\Breaks;
 use App\Models\SuperappEmployee;
 use Carbon\Carbon;
 use Livewire\Component;
+use App\Models\SuperappUser;
+use Illuminate\Support\Facades\Hash;
 
 new class extends Component
 {
@@ -107,7 +109,9 @@ new class extends Component
 
     public function verifyAndSubmit()
     {
-        if ($this->securityPin !== '112233') {
+        $user = SuperappUser::where('nik', '180702001')->first();
+
+        if (! Hash::check($this->securityPin, $user->pin_code)) {
             $this->verificationError = 'Invalid head of security PIN.';
             return;
         }

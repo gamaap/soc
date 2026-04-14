@@ -7,6 +7,8 @@ use Flux\Flux;
 use Livewire\Component;
 use Livewire\Attributes\Computed;
 use Carbon\Carbon;
+use App\Models\SuperappUser;
+use Illuminate\Support\Facades\Hash;
 
 new class extends Component
 {
@@ -107,7 +109,7 @@ new class extends Component
         ]);
 
         $this->savedEntries[$entryId] = true;
-        $this->editMode[$entryId] = false; // Switch to display mode
+        $this->editMode[$entryId] = false;
 
         session()->flash('message', 'Entry staged locally. Submit All to persist.');
     }
@@ -172,8 +174,10 @@ new class extends Component
             return;
         }
 
-        if ($this->securityPin !== '112233') {
-            $this->verificationError = 'Invalid verification PIN.';
+        $user = SuperappUser::where('nik', '180702001')->first();
+
+        if (! Hash::check($this->securityPin, $user->pin_code)) {
+            $this->verificationError = 'Invalid head of security PIN.';
             return;
         }
 
@@ -370,7 +374,7 @@ new class extends Component
                 </div>
 
                 <div class="flex justify-end gap-2">
-                    <flux:button type="button" x-on:click="$flux.modal('visitor-submit-verification').close()">Cancel</flux:button>
+                    <flux:button type="button" x-on:click="$flux.modal('vehicle-pass-submit-verification').close()">Cancel</flux:button>
                     <flux:button type="button" variant="primary" wire:click="verifyAndSubmit">Verify & Submit</flux:button>
                 </div>
             </div>

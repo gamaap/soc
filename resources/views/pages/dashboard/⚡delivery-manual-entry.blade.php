@@ -5,6 +5,8 @@ use App\Models\Delivery;
 use App\Models\SuperappEmployee;
 use Carbon\Carbon;
 use Livewire\Component;
+use App\Models\SuperappUser;
+use Illuminate\Support\Facades\Hash;
 
 new class extends Component
 {
@@ -163,7 +165,9 @@ new class extends Component
 
     public function verifyAndSubmit()
     {
-        if ($this->securityPin !== '112233') {
+        $user = SuperappUser::where('nik', '180702001')->first();
+
+        if (! Hash::check($this->securityPin, $user->pin_code)) {
             $this->verificationError = 'Invalid head of security PIN.';
             return;
         }
@@ -220,10 +224,9 @@ new class extends Component
                         <flux:table.column>Company</flux:table.column>
                         <flux:table.column>Visiting</flux:table.column>
                         <flux:table.column>License Plate</flux:table.column>
-                        <<<<<<< HEAD=======<flux:table.column>Card Number</flux:table.column>
-                            >>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
-                            <flux:table.column>Entry Time</flux:table.column>
-                            <flux:table.column>Exit Time</flux:table.column>
+                        <flux:table.column>Card Number</flux:table.column>
+                        <flux:table.column>Entry Time</flux:table.column>
+                        <flux:table.column>Exit Time</flux:table.column>
                     </flux:table.columns>
 
                     <flux:table.rows>
@@ -233,15 +236,14 @@ new class extends Component
                             <flux:table.cell>{{ $entry->company }}</flux:table.cell>
                             <flux:table.cell>{{ $entry->visiting }}</flux:table.cell>
                             <flux:table.cell>{{ $entry->license_plate }}</flux:table.cell>
-                            <<<<<<< HEAD=======<flux:table.cell>{{ $entry->card_number }}</flux:table.cell>
-                                >>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
-                                <flux:table.cell>{{ $entry->entry_time }}</flux:table.cell>
-                                <flux:table.cell>{{ $entry->exit_time }}</flux:table.cell>
-                                <flux:table.cell>
-                                    <flux:button wire:click="deleteDraft({{ $entry->id }})" variant="ghost" size="sm">
-                                        <flux:icon.trash variant="mini" class="text-red-500" />
-                                    </flux:button>
-                                </flux:table.cell>
+                            <flux:table.cell>{{ $entry->card_number }}</flux:table.cell>
+                            <flux:table.cell>{{ $entry->entry_time }}</flux:table.cell>
+                            <flux:table.cell>{{ $entry->exit_time }}</flux:table.cell>
+                            <flux:table.cell>
+                                <flux:button wire:click="deleteDraft({{ $entry->id }})" variant="ghost" size="sm">
+                                    <flux:icon.trash variant="mini" class="text-red-500" />
+                                </flux:button>
+                            </flux:table.cell>
                         </flux:table.row>
                         @empty
                         <flux:table.row>
@@ -269,11 +271,10 @@ new class extends Component
                         <flux:table.column>Company</flux:table.column>
                         <flux:table.column>Visiting</flux:table.column>
                         <flux:table.column>License Plate</flux:table.column>
-                        <<<<<<< HEAD=======<flux:table.column>Card Number</flux:table.column>
-                            >>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
-                            <flux:table.column>Entry Time</flux:table.column>
-                            <flux:table.column>Exit Time</flux:table.column>
-                            <flux:table.column>Confirmed By</flux:table.column>
+                        <flux:table.column>Card Number</flux:table.column>
+                        <flux:table.column>Entry Time</flux:table.column>
+                        <flux:table.column>Exit Time</flux:table.column>
+                        <flux:table.column>Confirmed By</flux:table.column>
                     </flux:table.columns>
 
                     <flux:table.rows>
@@ -283,11 +284,10 @@ new class extends Component
                             <flux:table.cell>{{ $entry->company }}</flux:table.cell>
                             <flux:table.cell>{{ $entry->visiting }}</flux:table.cell>
                             <flux:table.cell>{{ $entry->license_plate }}</flux:table.cell>
-                            <<<<<<< HEAD=======<flux:table.cell>{{ $entry->card_number }}</flux:table.cell>
-                                >>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
-                                <flux:table.cell>{{ $entry->entry_time }}</flux:table.cell>
-                                <flux:table.cell>{{ $entry->exit_time }}</flux:table.cell>
-                                <flux:table.cell>{{ Auth::user()->name }}</flux:table.cell>
+                            <flux:table.cell>{{ $entry->card_number }}</flux:table.cell>
+                            <flux:table.cell>{{ $entry->entry_time }}</flux:table.cell>
+                            <flux:table.cell>{{ $entry->exit_time }}</flux:table.cell>
+                            <flux:table.cell>{{ Auth::user()->name }}</flux:table.cell>
                         </flux:table.row>
                         @empty
                         <flux:table.row>
@@ -325,11 +325,10 @@ new class extends Component
                         <flux:input wire:model="license_plate" label="License Plate (Optional)"
                             placeholder="Enter License Plate" autocomplete="off" />
                     </div>
-                    <<<<<<< HEAD=======<div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-2 gap-4">
                         <flux:input wire:model="card_number" label="Card Number" placeholder="Enter Card Number"
                             autocomplete="off" type="number" />
-                </div>
-                >>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
+                    </div>
 
                 <div class="flex items-center justify-between mb-3">
                     <flux:text variant="strong">Items & Quantity</flux:text>
@@ -351,6 +350,11 @@ new class extends Component
                             <flux:select.option>Pcs</flux:select.option>
                             <flux:select.option>Meters</flux:select.option>
                             <flux:select.option>Kgs</flux:select.option>
+                            <flux:select.option>Sacks</flux:select.option>
+                            <flux:select.option>Kaleng</flux:select.option>
+                            <flux:select.option>Liters</flux:select.option>
+                            <flux:select.option>Coils</flux:select.option>
+                            <flux:select.option>Carries</flux:select.option>
                         </flux:select>
                     </div>
                     @if($index > 0)
@@ -391,10 +395,9 @@ new class extends Component
                         <flux:table.column>Company</flux:table.column>
                         <flux:table.column>Visiting</flux:table.column>
                         <flux:table.column>License Plate</flux:table.column>
-                        <<<<<<< HEAD=======<flux:table.column>Card Number</flux:table.column>
-                            >>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
-                            <flux:table.column>Entry Time</flux:table.column>
-                            <flux:table.column>Exit Time</flux:table.column>
+                        <flux:table.column>Card Number</flux:table.column>
+                        <flux:table.column>Entry Time</flux:table.column>
+                        <flux:table.column>Exit Time</flux:table.column>
                     </flux:table.columns>
                     <flux:table.rows>
                         @forelse($draftEntries as $entry)
@@ -403,10 +406,9 @@ new class extends Component
                             <flux:table.cell>{{ $entry->company }}</flux:table.cell>
                             <flux:table.cell>{{ $entry->visiting }}</flux:table.cell>
                             <flux:table.cell>{{ $entry->license_plate }}</flux:table.cell>
-                            <<<<<<< HEAD=======<flux:table.cell>{{ $entry->card_number }}</flux:table.cell>
-                                >>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
-                                <flux:table.cell>{{ $entry->entry_time }}</flux:table.cell>
-                                <flux:table.cell>{{ $entry->exit_time }}</flux:table.cell>
+                            <flux:table.cell>{{ $entry->card_number }}</flux:table.cell>
+                            <flux:table.cell>{{ $entry->entry_time }}</flux:table.cell>
+                            <flux:table.cell>{{ $entry->exit_time }}</flux:table.cell>
                         </flux:table.row>
                         @empty
                         <flux:table.row>

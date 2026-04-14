@@ -188,11 +188,11 @@ new class extends Component
             <flux:text class="mt-2">Manage keys for company box vehicles.</flux:text>
         </div>
         <div class="flex items-center justify-end gap-2">
-            <flux:button variant="outline" href="{{ route('dashboard.vehicle-keys-manual-entry') }}" wire:current="dashboard.vehicle-keys-manual-entry" wire:navigate>
+            <flux:button variant="outline" href="{{ route('dashboard.keys.box-manual-entry') }}" wire:current="dashboard.vehicle-keys-manual-entry" wire:navigate>
                 <flux:icon.plus variant="micro" /> Manual Entry
             </flux:button>
             <flux:modal.trigger name="add-box-key">
-                <flux:button icon="plus" variant="primary">Add Vehicle Keys</flux:button>
+                <flux:button icon="plus" variant="primary">Add Box Keys</flux:button>
             </flux:modal.trigger>
         </div>
     </div>
@@ -275,7 +275,7 @@ new class extends Component
         <form wire:submit.prevent="save" action="">
             <div class="space-y-6">
                 <div>
-                    <flux:heading size="lg">Add Vehicle Key</flux:heading>
+                    <flux:heading size="lg">Add Box Key</flux:heading>
                     <flux:text class="mt-2">Register a new vehicle key for tracking.</flux:text>
                 </div>
                 <flux:input wire:model="vehicle_number" label="Vehicle Number" placeholder="e.g. B 1234 XYZ" />

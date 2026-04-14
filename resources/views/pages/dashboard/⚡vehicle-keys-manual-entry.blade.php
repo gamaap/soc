@@ -6,6 +6,8 @@ use App\Models\DraftKeyBorrowingsEntry;
 use App\Models\KeyBorrowing;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Models\SuperappUser;
+use Illuminate\Support\Facades\Hash;
 
 new class extends Component
 {
@@ -37,7 +39,8 @@ new class extends Component
             $query->whereDate('date', $this->selectedDate);
         }
 
-        $this->draftEntries = $query->orderBy('created_at', 'desc')
+        $this->draftEntries = $query->whereNotNull('vehicle_key_id')
+            ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($entry) {
                 $entry->key_name = $entry->vehicleKey->vehicle_number ?? null;
@@ -70,6 +73,7 @@ new class extends Component
             'date' => $this->selectedDate,
             'vehicle_key_id' => $this->selectedKey,
             'facility_key_id' => null,
+            'box_key_id' => null,
             'borrower_name' => $this->borrower_name,
             'borrower_department' => $this->borrower_department,
             'borrowed_at' => Carbon::parse($this->selectedDate . ' ' . $this->borrow_time),
@@ -124,7 +128,9 @@ new class extends Component
 
     public function verifyAndSubmit()
     {
-        if ($this->securityPin !== '112233') {
+        $user = SuperappUser::where('nik', '251016006')->first();
+
+        if (! Hash::check($this->securityPin, $user->pin_code)) {
             $this->verificationError = 'Invalid head of security PIN.';
             return;
         }
@@ -281,7 +287,7 @@ new class extends Component
             </div>
 
             <div class="flex justify-end gap-2">
-                <flux:button type="button" x-on:click="$flux.modal('late-submit-verification').close()">Cancel</flux:button>
+                <flux:button type="button" x-on:click="$flux.modal('vehicle-keys-submit-verification').close()">Cancel</flux:button>
                 <flux:button type="button" variant="primary" wire:click="verifyAndSubmit">Verify & Submit</flux:button>
             </div>
         </div>

@@ -3,6 +3,8 @@
 use App\Models\DraftNightShiftEntry;
 use App\Models\NightShift;
 use App\Models\SuperappEmployee;
+use App\Models\SuperappUser;
+use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 use Livewire\Component;
 
@@ -105,7 +107,9 @@ new class extends Component
 
     public function verifyAndSubmit()
     {
-        if ($this->securityPin !== '112233') {
+        $user = SuperappUser::where('nik', '180702001')->first();
+
+        if (! Hash::check($this->securityPin, $user->pin_code)) {
             $this->verificationError = 'Invalid head of security PIN.';
             return;
         }
@@ -143,12 +147,6 @@ new class extends Component
                     </flux:button>
                 </div>
             </div>
-
-            {{-- @if (session()->has('message'))
-                <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
-                    {{ session('message') }}
-                </div> --}}
-            {{-- @endif --}}
 
             <div class="grid grid-cols-4 gap-2 items-end">
                 <div class="col-span-3">

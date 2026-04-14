@@ -20,6 +20,11 @@ class KeyBorrowing extends Model
         return $this->belongsTo(FacilityKey::class);
     }
 
+    public function boxKey(): BelongsTo
+    {
+        return $this->belongsTo(BoxKey::class);
+    }
+
     public function getBorrowedAtAttribute($value)
     {
         return $value ? Carbon::parse($value)->format('H:i') : null;

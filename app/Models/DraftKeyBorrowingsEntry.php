@@ -20,6 +20,11 @@ class DraftKeyBorrowingsEntry extends Model
         return $this->belongsTo(FacilityKey::class);
     }
 
+    public function boxKey(): BelongsTo
+    {
+        return $this->belongsTo(BoxKey::class);
+    }
+
     public function getBorrowTimeAttribute($value)
     {
         return $value ? Carbon::parse($value)->format('H:i') : null;

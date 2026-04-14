@@ -36,6 +36,7 @@ Route::middleware(['auth'])->group(function () {
     Route::livewire('dashboard/vehicle-pass/employee-pass/manual-entry', 'pages::dashboard.employee-pass-manual-entry')->name('dashboard.employee-pass-manual-entry');
     Route::livewire('dashboard/keys/vehicle/manual-entry', 'pages::dashboard.vehicle-keys-manual-entry')->name('dashboard.vehicle-keys-manual-entry');
     Route::livewire('dashboard/keys/facility/manual-entry', 'pages::dashboard.facility-keys-manual-entry')->name('dashboard.keys.facility-manual-entry');
+    Route::livewire('dashboard/keys/box/manual-entry', 'pages::dashboard.box-keys-manual-entry')->name('dashboard.keys.box-manual-entry');
 });
 
 Route::get('/employees/api', function (Request $request) {

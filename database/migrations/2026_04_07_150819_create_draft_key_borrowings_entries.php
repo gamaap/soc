@@ -16,6 +16,7 @@ return new class extends Migration
             $table->date('date');
             $table->foreignId('vehicle_key_id')->nullable()->constrained()->cascadeOnDelete();
             $table->foreignId('facility_key_id')->nullable()->constrained()->cascadeOnDelete();
+            $table->foreignId('box_key_id')->nullable()->constrained()->cascadeOnDelete();
             $table->string('borrower_name');
             $table->string('borrower_department');
             $table->timestamp('borrowed_at');

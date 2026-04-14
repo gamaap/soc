@@ -322,6 +322,11 @@ new class extends Component
                                         <flux:select.option>Pcs</flux:select.option>
                                         <flux:select.option>Meters</flux:select.option>
                                         <flux:select.option>Kgs</flux:select.option>
+                                        <flux:select.option>Sacks</flux:select.option>
+                                        <flux:select.option>Kaleng</flux:select.option>
+                                        <flux:select.option>Liters</flux:select.option>
+                                        <flux:select.option>Coils</flux:select.option>
+                                        <flux:select.option>Carries</flux:select.option>
                                     </flux:select>
                                 </div>
                                 @if($index > 0)
