@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\SsoController;
 use App\Models\SuperappDepartment;
 use App\Models\SuperappDivision;
 use App\Models\SuperappEmployee;
@@ -7,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'pages::auth.login')->name('login')->middleware('guest');
+Route::get('/auth/sso', [SsoController::class, 'handle'])->middleware('guest');
 
 Route::middleware(['auth'])->group(function () {
     Route::livewire('dashboard/request', 'pages::dashboard.request')->name('dashboard.request');
