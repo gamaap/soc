@@ -31,8 +31,12 @@ new class extends Component
     #[Computed]
     public function vehiclePasses()
     {
+<<<<<<< HEAD
         return SuperappCarDriverRequest::latest()
             ->select('id', 'code', 'security_departed_time', 'security_returned_time', 'starting_km', 'ending_km', 'status', 'purpose_code', 'purpose_other')
+=======
+        return SuperappCarDriverRequest::select('id', 'code', 'security_departed_time', 'security_returned_time', 'starting_km', 'ending_km', 'status', 'purpose_code', 'purpose_other')
+>>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
             ->with(['drivers' => function($query) {
                 $query->select('id', 'reff_code', 'driver_code');
             }, 'drivers.driver' => function($query) {

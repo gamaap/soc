@@ -16,6 +16,10 @@ new class extends Component
     public $company;
     public $visiting;
     public $license_plate;
+<<<<<<< HEAD
+=======
+    public $card_number;
+>>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
     public $purpose;
     public $entry_time;
     public $exit_time;
@@ -69,6 +73,10 @@ new class extends Component
             'company' => 'nullable|min:3',
             'visiting' => 'required|string|min:3',
             'license_plate' => 'nullable|min:3',
+<<<<<<< HEAD
+=======
+            'card_number' => 'nullable|numeric',
+>>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
             'purpose' => 'nullable|max:500',
             'entry_time' => 'required|date_format:H:i',
             'exit_time' => 'nullable|date_format:H:i|after:entry_time',
@@ -80,6 +88,10 @@ new class extends Component
             'company' => $this->company,
             'visiting' => $this->visiting,
             'license_plate' => $this->license_plate,
+<<<<<<< HEAD
+=======
+            'card_number' => $this->card_number,
+>>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
             'purpose' => $this->purpose,
             'entry_time' => $this->entry_time,
             'exit_time' => $this->exit_time,
@@ -116,7 +128,11 @@ new class extends Component
 
     public function resetForm()
     {
+<<<<<<< HEAD
         $this->reset(['name','company','visiting','license_plate','purpose', 'entry_time', 'exit_time']);
+=======
+        $this->reset(['name','company','visiting','license_plate','card_number','purpose', 'entry_time', 'exit_time']);
+>>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
 
         $this->items = [
             ['item_name' => '', 'quantity' => '', 'uom' => '']
@@ -137,6 +153,10 @@ new class extends Component
                 'visiting' => $draft->visiting,
                 'purpose' => $draft->purpose,
                 'license_plate' => $draft->license_plate,
+<<<<<<< HEAD
+=======
+                'card_number' => $draft->card_number,
+>>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
                 'entry_time' => $draft->entry_time,
                 'exit_time' => $draft->exit_time,
             ]);
@@ -213,6 +233,10 @@ new class extends Component
                         <flux:table.column>Company</flux:table.column>
                         <flux:table.column>Visiting</flux:table.column>
                         <flux:table.column>License Plate</flux:table.column>
+<<<<<<< HEAD
+=======
+                        <flux:table.column>Card Number</flux:table.column>
+>>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
                         <flux:table.column>Entry Time</flux:table.column>
                         <flux:table.column>Exit Time</flux:table.column>
                     </flux:table.columns>
@@ -224,6 +248,10 @@ new class extends Component
                                 <flux:table.cell>{{ $entry->company }}</flux:table.cell>
                                 <flux:table.cell>{{ $entry->visiting }}</flux:table.cell>
                                 <flux:table.cell>{{ $entry->license_plate }}</flux:table.cell>
+<<<<<<< HEAD
+=======
+                                <flux:table.cell>{{ $entry->card_number }}</flux:table.cell>
+>>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
                                 <flux:table.cell>{{ $entry->entry_time }}</flux:table.cell>
                                 <flux:table.cell>{{ $entry->exit_time }}</flux:table.cell>
                                 <flux:table.cell>
@@ -257,6 +285,10 @@ new class extends Component
                         <flux:table.column>Company</flux:table.column>
                         <flux:table.column>Visiting</flux:table.column>
                         <flux:table.column>License Plate</flux:table.column>
+<<<<<<< HEAD
+=======
+                        <flux:table.column>Card Number</flux:table.column>
+>>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
                         <flux:table.column>Entry Time</flux:table.column>
                         <flux:table.column>Exit Time</flux:table.column>
                         <flux:table.column>Confirmed By</flux:table.column>
@@ -269,6 +301,10 @@ new class extends Component
                                 <flux:table.cell>{{ $entry->company }}</flux:table.cell>
                                 <flux:table.cell>{{ $entry->visiting }}</flux:table.cell>
                                 <flux:table.cell>{{ $entry->license_plate }}</flux:table.cell>
+<<<<<<< HEAD
+=======
+                                <flux:table.cell>{{ $entry->card_number }}</flux:table.cell>
+>>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
                                 <flux:table.cell>{{ $entry->entry_time }}</flux:table.cell>
                                 <flux:table.cell>{{ $entry->exit_time }}</flux:table.cell>
                                 <flux:table.cell>{{ Auth::user()->name }}</flux:table.cell>
@@ -305,6 +341,12 @@ new class extends Component
                         </div>
                         <flux:input wire:model="license_plate" label="License Plate (Optional)" placeholder="Enter License Plate" autocomplete="off" />
                     </div>
+<<<<<<< HEAD
+=======
+                    <div class="grid grid-cols-2 gap-4">
+                        <flux:input wire:model="card_number" label="Card Number" placeholder="Enter Card Number" autocomplete="off" type="number" />
+                    </div>
+>>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
                     
                     <div class="flex items-center justify-between mb-3">
                         <flux:text variant="strong">Items & Quantity</flux:text>
@@ -370,6 +412,10 @@ new class extends Component
                         <flux:table.column>Company</flux:table.column>
                         <flux:table.column>Visiting</flux:table.column>
                         <flux:table.column>License Plate</flux:table.column>
+<<<<<<< HEAD
+=======
+                        <flux:table.column>Card Number</flux:table.column>
+>>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
                         <flux:table.column>Entry Time</flux:table.column>
                         <flux:table.column>Exit Time</flux:table.column>
                     </flux:table.columns>
@@ -380,6 +426,10 @@ new class extends Component
                                 <flux:table.cell>{{ $entry->company }}</flux:table.cell>
                                 <flux:table.cell>{{ $entry->visiting }}</flux:table.cell>
                                 <flux:table.cell>{{ $entry->license_plate }}</flux:table.cell>
+<<<<<<< HEAD
+=======
+                                <flux:table.cell>{{ $entry->card_number }}</flux:table.cell>
+>>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
                                 <flux:table.cell>{{ $entry->entry_time }}</flux:table.cell>
                                 <flux:table.cell>{{ $entry->exit_time }}</flux:table.cell>
                             </flux:table.row>

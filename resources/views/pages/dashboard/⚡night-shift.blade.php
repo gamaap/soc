@@ -145,7 +145,7 @@ new class extends Component
                         </div>
                         <div class="col-span-4">
                             <flux:button variant="primary" class="w-full" type="submit" :disabled="$photoLoading">
-                                Record Check In Time
+                                Record Check Out Time
                             </flux:button>
                         </div>
                     </form>
@@ -166,8 +166,8 @@ new class extends Component
                     <flux:table.column>Date</flux:table.column>
                     <flux:table.column>Employee</flux:table.column>
                     <flux:table.column>Department</flux:table.column>
-                    <flux:table.column>Check-In Time</flux:table.column>
                     <flux:table.column>Check-Out Time</flux:table.column>
+                    <flux:table.column>Check-In Time</flux:table.column>
                 </flux:table.columns>
 
                 <flux:table.rows>
@@ -237,7 +237,9 @@ new class extends Component
             input: {
                 selection: (event) => {
                     const selection = event.detail.selection.value;
-                    const resolvedPhoto = selection.photo ? 'https://superapp.ewindo.co.id/storage/' + selection.photo : 'https://placehold.co/300';
+                    const resolvedPhoto = selection.photo
+                        ? '/proxy/employee-photo?path=' + encodeURIComponent(selection.photo)
+                        : '/img/avatar-default.png';
 
                     autoCompleteJS.input.value = selection.fullname;
                     $wire.set('employee', selection.fullname);
@@ -252,7 +254,7 @@ new class extends Component
                         $wire.set('photoLoading', false);
                     };
                     img.onerror = () => {
-                        $wire.set('photo', 'https://placehold.co/300');
+                        $wire.set('photo', '/img/avatar-default.png');
                         $wire.set('photoLoading', false);
                     };
                     img.src = resolvedPhoto;

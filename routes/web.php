@@ -1,12 +1,25 @@
 <?php
 
+<<<<<<< HEAD
+=======
+use App\Http\Controllers\Auth\SsoController;
+>>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
 use App\Models\SuperappDepartment;
 use App\Models\SuperappDivision;
 use App\Models\SuperappEmployee;
 use Illuminate\Http\Request;
+<<<<<<< HEAD
+=======
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
+>>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
 use Illuminate\Support\Facades\Route;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\Encoders\JpegEncoder;
 
 Route::view('/', 'pages::auth.login')->name('login')->middleware('guest');
+Route::get('/auth/sso', [SsoController::class, 'handle'])->middleware('guest');
 
 Route::middleware(['auth'])->group(function () {
     Route::livewire('dashboard/request', 'pages::dashboard.request')->name('dashboard.request');
@@ -18,6 +31,10 @@ Route::middleware(['auth'])->group(function () {
     Route::livewire('dashboard/vehicle-pass', 'pages::dashboard.vehicle-pass')->name('dashboard.vehicle-pass');
     Route::livewire('dashboard/keys/vehicle', 'pages::dashboard.vehicle-keys')->name('dashboard.keys.vehicle');
     Route::livewire('dashboard/keys/facility', 'pages::dashboard.facility-keys')->name('dashboard.keys.facility');
+<<<<<<< HEAD
+=======
+    Route::livewire('dashboard/keys/box', 'pages::dashboard.box-keys')->name('dashboard.keys.box');
+>>>>>>> 2085cb4241a99dd50846ea10f3e25378cb887386
 
     Route::livewire('dashboard/late/manual-entry', 'pages::dashboard.late-manual-entry')->name('dashboard.late-manual-entry');
     Route::livewire('dashboard/break/manual-entry', 'pages::dashboard.break-manual-entry')->name('dashboard.break-manual-entry');
@@ -82,6 +99,30 @@ Route::get('/employee-master/api', function (Request $request) {
 
 Route::get('/departments/api', function() {
     return SuperappDepartment::all();
+})->middleware('auth');
+
+Route::get('/proxy/employee-photo', function (Request $request) {
+    $path = $request->query('path');
+
+    abort_if(!$path || str_contains($path, '..'), 400);
+
+    $remoteUrl = 'https://superapp.ewindo.co.id/storage/' . ltrim($path, '/');
+    $cacheKey  = 'emp_photo_' . md5($path);
+
+    $imageData = Cache::remember($cacheKey, now()->addHours(6), function () use ($remoteUrl) {
+        $response = Http::timeout(10)->get($remoteUrl);
+        abort_if(!$response->ok(), 404);
+        return $response->body();
+    });
+
+    $manager = new ImageManager(new Driver());
+    $img = $manager->decodeBinary($imageData)
+        ->scale(width: 300)
+        ->encode(new JpegEncoder(quality: 75));
+
+    return response($img)
+        ->header('Content-Type', 'image/jpeg')
+        ->header('Cache-Control', 'public, max-age=21600');
 })->middleware('auth');
 
 Route::get('/divisions/api', function() {

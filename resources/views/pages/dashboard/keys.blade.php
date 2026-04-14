@@ -18,6 +18,7 @@ new class extends Component
 
             <flux:navbar class="mt-2 flex items-center justify-evenly gap-3">
                 <flux:navbar.item :href="route('dashboard.keys.vehicle')" wire:current="dashboard.keys.vehicle" class="w-full text-center" wire:navigate>Vehicle Keys</flux:navbar.item>
+                <flux:navbar.item :href="route('dashboard.keys.box')" wire:current="dashboard.keys.box" class="w-full text-center" wire:navigate>Box Keys</flux:navbar.item>
                 <flux:navbar.item :href="route('dashboard.keys.facility')" wire:current="dashboard.keys.facility" class="w-full text-center" wire:navigate>Facility Keys</flux:navbar.item>
             </flux:navbar>
 
