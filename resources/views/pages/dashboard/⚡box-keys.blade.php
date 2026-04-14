@@ -1,7 +1,7 @@
 <?php
 
 use Livewire\Component;
-use App\Models\VehicleKey;
+use App\Models\BoxKey;
 use App\Models\KeyBorrowing;
 use Livewire\Attributes\Computed;
 
@@ -25,7 +25,7 @@ new class extends Component
             'total_keys' => 'required|numeric|min:0'
         ]);
 
-        VehicleKey::create([
+        BoxKey::create([
             'vehicle_number' => $this->vehicle_number,
             'vehicle_type' => $this->vehicle_type,
             'total_keys' => $this->total_keys,
@@ -34,7 +34,7 @@ new class extends Component
 
         $this->reset();
 
-        Flux::modal('add-vehicle-key')->close();
+        Flux::modal('add-box-key')->close();
     }
 
     public function openBorrowModal($id)
@@ -48,7 +48,7 @@ new class extends Component
     {
         $this->keyId = $id;
 
-        $borrowings = KeyBorrowing::where('vehicle_key_id', $id)
+        $borrowings = KeyBorrowing::where('box_key_id', $id)
             ->whereNull('returned_at')
             ->get();
 
@@ -64,7 +64,7 @@ new class extends Component
             'borrower_department' => 'required|string|min:3'
         ]);
 
-        $key = VehicleKey::findOrFail($this->keyId);
+        $key = BoxKey::findOrFail($this->keyId);
 
         if ($key->available <= 0) {
             $this->addError('borrower_name', 'No available keys can be borrowed at the moment.');
@@ -73,7 +73,7 @@ new class extends Component
 
         KeyBorrowing::create([
             'date' => today(),
-            'vehicle_key_id' => $this->keyId,
+            'box_key_id' => $this->keyId,
             'borrower_name' => $this->borrower_name,
             'borrower_department' => $this->borrower_department,
             'borrowed_at' => now(),
@@ -95,7 +95,7 @@ new class extends Component
 
         $borrowing = KeyBorrowing::find($this->selectedBorrowingId);
 
-        if (! $borrowing || $borrowing->vehicle_key_id !== $this->keyId || $borrowing->returned_at !== null) {
+        if (! $borrowing || $borrowing->box_key_id !== $this->keyId || $borrowing->returned_at !== null) {
             $this->addError('selectedBorrowingId', 'Invalid borrowing selected.');
             return;
         }
@@ -116,13 +116,13 @@ new class extends Component
     {
         $this->keyId = $id;
 
-        Flux::modal('view-vehicle-keys-history')->show();
+        Flux::modal('view-box-keys-history')->show();
     }
 
     #[Computed]
     public function vehicleKeys()
     {
-        return VehicleKey::with('borrowings')->paginate(10);        
+        return BoxKey::with('borrowings')->paginate(10);        
     }
 
     #[Computed]
@@ -133,7 +133,7 @@ new class extends Component
         }
 
         $today = today();
-        return KeyBorrowing::where('vehicle_key_id', $this->keyId)
+        return KeyBorrowing::where('box_key_id', $this->keyId)
             ->where(function($q) use ($today) {
                 $q->whereDate('borrowed_at', $today)
                   ->orWhere(function($sub) use ($today) {
@@ -151,7 +151,7 @@ new class extends Component
             return null;
         }
 
-        return VehicleKey::with('borrowings')->find($this->keyId);
+        return BoxKey::with('borrowings')->find($this->keyId);
     }
 
     #[Computed]
@@ -161,7 +161,7 @@ new class extends Component
             return null;
         }
 
-        return KeyBorrowing::where('vehicle_key_id', $this->keyId)
+        return KeyBorrowing::where('box_key_id', $this->keyId)
             ->whereNull('returned_at')
             ->get();
     }
@@ -173,7 +173,7 @@ new class extends Component
             return null;
         }
 
-        return KeyBorrowing::where('vehicle_key_id', $this->keyId)
+        return KeyBorrowing::where('box_key_id', $this->keyId)
             ->whereNull('returned_at')
             ->latest()
             ->first();
@@ -184,14 +184,14 @@ new class extends Component
 <x-pages::dashboard.keys>
     <div class="flex justify-between">
         <div>
-            <flux:heading>Vehicle Keys</flux:heading>
-            <flux:text class="mt-2">Manage keys for company vehicles.</flux:text>
+            <flux:heading>Box Vehicle Keys</flux:heading>
+            <flux:text class="mt-2">Manage keys for company box vehicles.</flux:text>
         </div>
         <div class="flex items-center justify-end gap-2">
             <flux:button variant="outline" href="{{ route('dashboard.vehicle-keys-manual-entry') }}" wire:current="dashboard.vehicle-keys-manual-entry" wire:navigate>
                 <flux:icon.plus variant="micro" /> Manual Entry
             </flux:button>
-            <flux:modal.trigger name="add-vehicle-key">
+            <flux:modal.trigger name="add-box-key">
                 <flux:button icon="plus" variant="primary">Add Vehicle Keys</flux:button>
             </flux:modal.trigger>
         </div>
@@ -271,7 +271,7 @@ new class extends Component
         </flux:table.rows>
     </flux:table>
 
-    <flux:modal name="add-vehicle-key" class="md:w-96">
+    <flux:modal name="add-box-key" class="md:w-96">
         <form wire:submit.prevent="save" action="">
             <div class="space-y-6">
                 <div>
@@ -367,7 +367,7 @@ new class extends Component
         </form>
     </flux:modal>
 
-    <flux:modal name="view-vehicle-keys-history" class="md:w-200">
+    <flux:modal name="view-box-keys-history" class="md:w-200">
         <div class="space-y-6">
             <div>
                 <flux:heading size="lg">Key Transaction History</flux:heading>
