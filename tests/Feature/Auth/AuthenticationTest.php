@@ -59,9 +59,11 @@ test('users with two factor enabled are redirected to two factor challenge', fun
 test('users can logout', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->post(route('logout'));
+    $response = $this->actingAs($user)
+        ->withSession(['_token' => 'test-token'])
+        ->post(route('logout'), ['_token' => 'test-token']);
 
-    $response->assertRedirect(route('home'));
+    $response->assertRedirect('https://superapp.ewindo.co.id/');
 
     $this->assertGuest();
 });
