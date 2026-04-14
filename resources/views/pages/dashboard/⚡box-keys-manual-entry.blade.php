@@ -8,9 +8,12 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Models\SuperappUser;
 use Illuminate\Support\Facades\Hash;
+use Livewire\WithPagination;
 
 new class extends Component
 {
+	use WithPagination;
+	
     public $selectedDate;
     public $draftEntries = [];
     public $completedEntries = [];

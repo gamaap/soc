@@ -8,9 +8,12 @@ use Livewire\Component;
 use App\Models\SuperappUser;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Attributes\Computed;
+use Livewire\WithPagination;
 
 new class extends Component
 {
+	use WithPagination;
+	
     public $selectedDate;
     public $employee;
     public $actualArrivalTime;

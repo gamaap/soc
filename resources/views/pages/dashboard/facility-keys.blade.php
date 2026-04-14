@@ -4,9 +4,12 @@ use Livewire\Component;
 use App\Models\FacilityKey;
 use App\Models\KeyBorrowing;
 use Livewire\Attributes\Computed;
+use Livewire\WithPagination;
 
 new class extends Component
 {
+	use WithPagination;
+	
     public $key_name;
     public $area;
     public $total_keys;
@@ -20,7 +23,7 @@ new class extends Component
     public function save()
     {
         $this->validate([
-            'key_name' => 'required|min:3',
+            'key_name' => 'required',
             'area' => 'required',
             'total_keys' => 'required|numeric|min:0'
         ]);

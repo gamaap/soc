@@ -6,9 +6,12 @@ use App\Models\Late;
 use Livewire\Attributes\Computed;
 use Illuminate\Support\Facades\DB;
 use App\Models\SuperappDepartment;
+use Livewire\WithPagination;
 
 new class extends Component
 {
+	use WithPagination;
+	
     public $card_number = '';
     public $employee = '';
     public $department = '';

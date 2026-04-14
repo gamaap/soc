@@ -5,9 +5,12 @@ use App\Models\EmployeePass;
 use App\Models\EmployeeMasterPass;
 use Carbon\Carbon;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 new class extends Component
 {
+	use WithPagination;
+	
     public $selectedDate;
     public $draftEntries = [];
     public $completedEntries = [];

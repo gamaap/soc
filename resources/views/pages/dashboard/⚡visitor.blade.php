@@ -5,9 +5,12 @@ use Carbon\Carbon;
 use App\Models\Visitor;
 use Livewire\Attributes\Computed;
 use Flux\Flux;
+use Livewire\WithPagination;
 
 new class extends Component
 {
+	use WithPagination;
+	
     public $name;
     public $company;
     public $visiting;

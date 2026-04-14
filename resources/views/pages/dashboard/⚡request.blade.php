@@ -4,9 +4,12 @@ use Livewire\Component;
 use App\Models\LeaveRequest;
 use Livewire\Attributes\Computed;
 use Carbon\Carbon;
+use Livewire\WithPagination;
 
 new class extends Component
 {
+	use WithPagination;
+	
     public $date;
     public $permitted_start_time;
     public $permitted_end_time;

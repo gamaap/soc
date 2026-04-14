@@ -4,9 +4,12 @@ use Livewire\Component;
 use App\Models\BoxKey;
 use App\Models\KeyBorrowing;
 use Livewire\Attributes\Computed;
+use Livewire\WithPagination;
 
 new class extends Component
 {
+	use WithPagination;
+
     public $vehicle_number;
     public $vehicle_type;
     public $total_keys;

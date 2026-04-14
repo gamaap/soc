@@ -7,9 +7,12 @@ use Carbon\Carbon;
 use Livewire\Component;
 use App\Models\SuperappUser;
 use Illuminate\Support\Facades\Hash;
+use Livewire\WithPagination;
 
 new class extends Component
 {
+	use WithPagination;
+	
     public $items = [];
     public $draftEntries = [];
     public $completedEntries = [];

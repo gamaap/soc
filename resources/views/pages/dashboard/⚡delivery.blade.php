@@ -5,9 +5,12 @@ use App\Models\Delivery;
 use Flux\Flux;
 use Carbon\Carbon;
 use Livewire\Attributes\Computed;
+use Livewire\WithPagination;
 
 new class extends Component
 {
+	use WithPagination;
+	
     public $items = [];
     public $name;
     public $company;

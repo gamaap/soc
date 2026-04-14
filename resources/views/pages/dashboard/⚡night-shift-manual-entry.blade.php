@@ -7,9 +7,12 @@ use App\Models\SuperappUser;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 new class extends Component
 {
+	use WithPagination;
+	
     public $selectedDate;
     public $employee;
     public $checkInTime;
