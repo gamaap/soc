@@ -15,6 +15,7 @@ new class extends Component
     public $entry_time = '';
     public $exit_time = '';
     public $visiting = '';
+    public $card_number;
     public $purpose = '';
     public $securityPin = '';
     public $verificationError = '';
@@ -55,6 +56,7 @@ new class extends Component
             'company' => 'nullable|min:3',
             'visiting' => 'required|string|min:3',
             'license_plate' => 'nullable|min:3',
+            'card_number' => 'nullable|numeric',
             'purpose' => 'nullable|max:500',
             'entry_time' => 'required|date_format:H:i',
             'exit_time' => 'nullable|date_format:H:i|after:entry_time',
@@ -66,13 +68,14 @@ new class extends Component
             'company' => $this->company,
             'visiting' => $this->visiting,
             'license_plate' => $this->license_plate,
+            'card_number' => $this->card_number,
             'purpose' => $this->purpose,
             'entry_time' => $this->entry_time,
             'exit_time' => $this->exit_time,
             'user_id' => auth()->id(),
         ]);
 
-        $this->reset(['name', 'company', 'visiting', 'license_plate', 'purpose', 'entry_time', 'exit_time']);
+        $this->reset(['name', 'company', 'visiting', 'license_plate', 'card_number', 'purpose', 'entry_time', 'exit_time']);
         $this->loadEntries();
 
         session()->flash('message', 'Entry added to draft successfully.');
@@ -94,6 +97,7 @@ new class extends Component
                 'visiting' => $draft->visiting,
                 'purpose' => $draft->purpose,
                 'license_plate' => $draft->license_plate,
+                'card_number' => $draft->card_number,
                 'entry_time' => $draft->entry_time,
                 'exit_time' => $draft->exit_time,
             ]);
@@ -168,6 +172,7 @@ new class extends Component
                         <flux:table.column>Company</flux:table.column>
                         <flux:table.column>Visiting</flux:table.column>
                         <flux:table.column>License Plate</flux:table.column>
+                        <flux:table.column>Card Number</flux:table.column>
                         <flux:table.column>Entry Time</flux:table.column>
                         <flux:table.column>Exit Time</flux:table.column>
                     </flux:table.columns>
@@ -179,6 +184,7 @@ new class extends Component
                                 <flux:table.cell>{{ $entry->company }}</flux:table.cell>
                                 <flux:table.cell>{{ $entry->visiting }}</flux:table.cell>
                                 <flux:table.cell>{{ $entry->license_plate }}</flux:table.cell>
+                                <flux:table.cell>{{ $entry->card_number }}</flux:table.cell>
                                 <flux:table.cell>{{ $entry->entry_time }}</flux:table.cell>
                                 <flux:table.cell>{{ $entry->exit_time }}</flux:table.cell>
                                 <flux:table.cell>
@@ -212,6 +218,7 @@ new class extends Component
                         <flux:table.column>Company</flux:table.column>
                         <flux:table.column>Visiting</flux:table.column>
                         <flux:table.column>License Plate</flux:table.column>
+                        <flux:table.column>Card Number</flux:table.column>
                         <flux:table.column>Entry Time</flux:table.column>
                         <flux:table.column>Exit Time</flux:table.column>
                         <flux:table.column>Confirmed By</flux:table.column>
@@ -224,6 +231,7 @@ new class extends Component
                                 <flux:table.cell>{{ $entry->company }}</flux:table.cell>
                                 <flux:table.cell>{{ $entry->visiting }}</flux:table.cell>
                                 <flux:table.cell>{{ $entry->license_plate }}</flux:table.cell>
+                                <flux:table.cell>{{ $entry->card_number }}</flux:table.cell>
                                 <flux:table.cell>{{ $entry->entry_time }}</flux:table.cell>
                                 <flux:table.cell>{{ $entry->exit_time }}</flux:table.cell>
                                 <flux:table.cell>{{ Auth::user()->name }}</flux:table.cell>
@@ -260,6 +268,9 @@ new class extends Component
                         </div>
                         <flux:input wire:model="license_plate" label="License Plate (Optional)" placeholder="Enter License Plate" autocomplete="off" />
                     </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <flux:input wire:model="card_number" label="Card Number" placeholder="Enter Card Number" autocomplete="off" type="number" />
+                    </div>
                     <flux:textarea
                         wire:model="purpose"
                         label="Reason for Visit"
@@ -290,6 +301,7 @@ new class extends Component
                         <flux:table.column>Company</flux:table.column>
                         <flux:table.column>Visiting</flux:table.column>
                         <flux:table.column>License Plate</flux:table.column>
+                        <flux:table.column>Card Number</flux:table.column>
                         <flux:table.column>Entry Time</flux:table.column>
                         <flux:table.column>Exit Time</flux:table.column>
                     </flux:table.columns>
@@ -300,6 +312,7 @@ new class extends Component
                                 <flux:table.cell>{{ $entry->company }}</flux:table.cell>
                                 <flux:table.cell>{{ $entry->visiting }}</flux:table.cell>
                                 <flux:table.cell>{{ $entry->license_plate }}</flux:table.cell>
+                                <flux:table.cell>{{ $entry->card_number }}</flux:table.cell>
                                 <flux:table.cell>{{ $entry->entry_time }}</flux:table.cell>
                                 <flux:table.cell>{{ $entry->exit_time }}</flux:table.cell>
                             </flux:table.row>
