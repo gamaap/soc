@@ -4,13 +4,6 @@ use Livewire\Component;
 use Carbon\Carbon;
 use App\Models\Breaks;
 use Livewire\Attributes\Computed;
-<<<<<<< HEAD
-
-new class extends Component
-{
-    public $employee = '';
-    public $department = '';
-=======
 use Illuminate\Support\Facades\DB;
 use App\Models\SuperappDepartment;
 
@@ -50,7 +43,6 @@ new class extends Component
 
         $this->photoLoading = false;
     }
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
 
     public function save()
     {
@@ -74,28 +66,17 @@ new class extends Component
             'actual_return' => $return->format('H:i:s'),
             'minutes_late' => $minutesLate,
             'date' => $return->toDateString(),
-<<<<<<< HEAD
-            'created_by' => Auth::id()
-        ]);
-
-        $this->reset(['employee', 'department']);
-=======
             'photo' => $this->photo,
             'created_by' => Auth::id()
         ]);
 
         $this->reset(['card_number', 'employee', 'department', 'photo']);
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
     }
 
     #[Computed]
     public function breaks()
     {
-<<<<<<< HEAD
-        return Breaks::latest()->get();
-=======
-        return Breaks::whereDate('date', today())->latest()->get();
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
+        return Breaks::whereDate('date', today())->latest()->paginate(10);
     }
 };
 ?>
@@ -105,26 +86,18 @@ new class extends Component
 
     <x-pages::dashboard.layout>
         <div class="border border-accent p-6 rounded-2xl my-6">
-            <flux:heading>Record Employee Return Time</flux:heading>
-            <flux:text class="mt-2">Record when employee return from break.</flux:text>
-        
-<<<<<<< HEAD
-            <div class="flex gap-4 my-6">
-                <form wire:submit.prevent="save" action="" class="flex gap-x-4 items-end justify-between w-full">
-                    <div class="flex-1">
-                        <flux:input wire:model="employee" :label="__('Employee')" type="text" required autofocus />
-                    </div>
-                    <div class="flex-1">
-                        <flux:input wire:model="department" :label="__('Department')" type="text" />
-                    </div>
-                    <div class="flex-1">
-                        <flux:button variant="primary" class="w-full" type="submit">
-                            Record Return Time Now
-                        </flux:button>
-                    </div>
-                </form>
+            <div class="flex items-center justify-between">
+                <div>
+                    <flux:heading>Record Employee Return Time</flux:heading>
+                    <flux:text class="mt-2">Record when employee return from break.</flux:text>
+                </div>
+                <div>
+                    <flux:button variant="outline" href="{{ route('dashboard.break-manual-entry') }}" wire:current="dashboard.break-manual-entry" wire:navigate>
+                        <flux:icon.plus variant="micro" /> Manual Entry
+                    </flux:button>
+                </div>
             </div>
-=======
+        
             <div class="flex flex-col md:flex-row gap-6 items-center mt-4">
                 <div class="relative flex-1 md:w-1/2">
                     <img
@@ -153,7 +126,9 @@ new class extends Component
                             </div>
                         </div>
                         <div class="col-span-4">
-                            <flux:input wire:model="department" :label="__('Department')" type="text" autocomplete="off" />
+                            <div class="autoComplete_wrapper" wire:ignore>
+                                <flux:input wire:model="department" id="department" :label="__('Department')" type="text" autocomplete="off" />
+                            </div>
                         </div>
                         <div class="col-span-4">
                             <flux:button variant="primary" class="w-full" type="submit" :disabled="$photoLoading">
@@ -168,23 +143,14 @@ new class extends Component
                 </div>
             </div>
 
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
         </div>
 
         <div class="border border-accent p-6 rounded-2xl">
             <flux:heading>Break Time History</flux:heading>
             <flux:text class="mt-2">View all break time records.</flux:text>
 
-            <flux:table class="mt-4">
+            <flux:table class="mt-4" :paginate="$this->breaks">
                 <flux:table.columns>
-<<<<<<< HEAD
-                    <flux:table.column>Date</flux:table.column>
-                    <flux:table.column>Employee</flux:table.column>
-                    <flux:table.column>Department</flux:table.column>
-                    <flux:table.column>Standard Time</flux:table.column>
-                    <flux:table.column>Actual Return</flux:table.column>
-                    <flux:table.column>Minutes Late</flux:table.column>
-=======
                     <flux:table.column>Photo</flux:table.column>
                     <flux:table.column>Date</flux:table.column>
                     <flux:table.column>Employee</flux:table.column>
@@ -192,22 +158,11 @@ new class extends Component
                     {{-- <flux:table.column>Standard Time</flux:table.column> --}}
                     <flux:table.column>Actual Return</flux:table.column>
                     {{-- <flux:table.column>Minutes Late</flux:table.column> --}}
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
                 </flux:table.columns>
 
                 <flux:table.rows>
                     @forelse ($this->breaks as $break)
                         <flux:table.row>
-<<<<<<< HEAD
-                            <flux:table.cell>{{ $break->formatted_date }}</flux:table.cell>
-                            <flux:table.cell>{{ $break->name }}</flux:table.cell>
-                            <flux:table.cell>{{ $break->department }}</flux:table.cell>
-                            <flux:table.cell>13.00</flux:table.cell>
-                            <flux:table.cell>{{ $break->actual_return }}</flux:table.cell>
-                            <flux:table.cell>
-                                <flux:badge color="red" size="sm" inset="top bottom">{{ $break->minutes_late }} minutes</flux:badge>
-                            </flux:table.cell>
-=======
                             <flux:table.cell>
                                 <img src="{{ $break->photo ?: asset('img/avatar-default.png') }}" alt="" class="w-15 h-15 rounded-full object-cover border border-accent/20">
                             </flux:table.cell>
@@ -219,7 +174,6 @@ new class extends Component
                             {{-- <flux:table.cell>
                                 <flux:badge color="red" size="sm" inset="top bottom">{{ $break->minutes_late }} minutes</flux:badge>
                             </flux:table.cell> --}}
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
                         </flux:table.row>
                     @empty
                         <flux:table.row>
@@ -234,9 +188,6 @@ new class extends Component
             </flux:table>
         </div>
     </x-pages::dashboard.layout>
-<<<<<<< HEAD
-</section>
-=======
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10.2.9/dist/autoComplete.min.js"></script>
@@ -296,5 +247,36 @@ new class extends Component
             }
         }
     });
+
+    const department = new autoComplete({
+        selector: "#department",
+        data: {
+            src: async (query) => {
+                try {
+                    const source = await fetch(`/departments/api?search=${encodeURIComponent(query)}`);
+                    const data = await source.json();
+
+                    return data;
+                } catch (error) {
+                    return error;
+                }
+            },
+            keys: ["name"],
+        },
+        resultsList: {
+            maxResults: 50
+        },
+        resultItem: {
+            highlight: true
+        },
+        events: {
+            input: {
+                selection: (event) => {
+                    const selection = event.detail.selection.value;
+
+                    $wire.set('department', selection.name);
+                }
+            }
+        }
+    });
 </script>
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24

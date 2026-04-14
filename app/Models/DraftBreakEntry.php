@@ -5,9 +5,22 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
-class Late extends Model
+class DraftBreakEntry extends Model
 {
-    protected $guarded = [];
+    protected $fillable = [
+        'date',
+        'name',
+        'department',
+        'actual_arrival',
+        'minutes_late',
+        'photo',
+        'user_id',
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function getFormattedDateAttribute()
     {

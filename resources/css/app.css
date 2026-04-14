@@ -63,8 +63,6 @@ select:focus[data-flux-control] {
     @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
 }
 
-<<<<<<< HEAD
-=======
 .autoComplete_wrapper {
     width: 100% !important;
     position: relative !important;
@@ -78,9 +76,9 @@ select:focus[data-flux-control] {
 }
 
 .autoComplete_wrapper > input::placeholder {
-    font-size: 0.85rem !important;
+    font-size: 0.9rem !important;
     color: #444 !important;
-    opacity: 1 !important;
+    opacity: 0.6 !important;
 }
 
 .autoComplete_wrapper > ul > li mark {
@@ -89,7 +87,6 @@ select:focus[data-flux-control] {
     font-weight: 700 !important;
 }
 
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */

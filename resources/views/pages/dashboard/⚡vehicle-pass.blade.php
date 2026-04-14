@@ -1,19 +1,10 @@
 <?php
 
-<<<<<<< HEAD
-=======
 use Livewire\WithPagination;
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
 use Livewire\Component;
 use Livewire\Attributes\Computed;
 use App\Models\VehiclePass;
 use App\Models\EmployeePass;
-<<<<<<< HEAD
-use Flux\Flux;
-
-new class extends Component
-{
-=======
 use App\Models\EmployeeMasterPass;
 use App\Models\SuperappCarDriverRequest;
 use App\Models\SuperappCarDriverRequestHistory;
@@ -24,7 +15,6 @@ new class extends Component
 {
     use WithPagination;
 
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
     public $vehiclePassId;
     public $starting_km;
     public $ending_km;
@@ -32,21 +22,15 @@ new class extends Component
     public $department;
     public $license_plate;
     public $vehicle_type;
-<<<<<<< HEAD
-=======
     public $employeeMaster;
     public $departmentMaster;
     public $licensePlateMaster = '';
     public $licensePlates = [];
     public $plateOptions = [];
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
 
     #[Computed]
     public function vehiclePasses()
     {
-<<<<<<< HEAD
-        return VehiclePass::orderBy('id')->get();
-=======
         return SuperappCarDriverRequest::latest()
             ->select('id', 'code', 'security_departed_time', 'security_returned_time', 'starting_km', 'ending_km', 'status', 'purpose_code', 'purpose_other')
             ->with(['drivers' => function($query) {
@@ -63,8 +47,8 @@ new class extends Component
             ->whereIn('status', ['Assigned', 'In Transit', 'Completed'])
             ->where('plant_id', 1)
             ->where('date', Carbon::today()->toDateString())
+            ->orderByRaw('security_departed_time IS NULL DESC, security_departed_time ASC')
             ->paginate(10);
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
     }
 
     public function save()
@@ -73,10 +57,6 @@ new class extends Component
             'name' => 'required|string|min:3',
             'department' => 'required|string|min:3',
             'license_plate' => 'required|min:3',
-<<<<<<< HEAD
-            'vehicle_type' => 'required'
-=======
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
         ]);
 
         EmployeePass::create([
@@ -84,19 +64,15 @@ new class extends Component
             'name' => $this->name,
             'department' => $this->department,
             'license_plate' => $this->license_plate,
-<<<<<<< HEAD
-            'vehicle_type' => $this->vehicle_type,
-=======
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
             'entry_time' => now()->format('H:i:s'),
             'created_by' => auth()->id(),
         ]);
 
-        $this->reset();
+        $this->reset(['name', 'department', 'license_plate', 'plateOptions']);
+
+        return redirect(request()->header('Referer'));
     }
 
-<<<<<<< HEAD
-=======
     public function addLicensePlate()
     {
         $this->validate([
@@ -156,7 +132,6 @@ new class extends Component
         }
     }
 
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
     public function checkOut($id)
     {
         $employee = EmployeePass::findOrFail($id);
@@ -187,13 +162,6 @@ new class extends Component
             'starting_km' => 'required|integer|min:0'
         ]);
 
-<<<<<<< HEAD
-        $pass = VehiclePass::find($this->vehiclePassId);
-
-        $pass->update([
-            'starting_km' => $this->starting_km,
-            'leaving_time' => now()->format('H:i:s')
-=======
         $pass = SuperappCarDriverRequest::find($this->vehiclePassId);
 
         $pass->update([
@@ -206,7 +174,6 @@ new class extends Component
             'status' => 'Security In Transit',
             'from' => 'Admin',
             'color' => '#0D99FF'
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
         ]);
 
         $this->reset('starting_km', 'vehiclePassId');
@@ -216,11 +183,7 @@ new class extends Component
 
     public function recordReturn()
     {
-<<<<<<< HEAD
-        $pass = VehiclePass::find($this->vehiclePassId);
-=======
         $pass = SuperappCarDriverRequest::find($this->vehiclePassId);
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
 
         $this->validate([
             'ending_km' => 'required|integer|gte:' . $pass->starting_km
@@ -228,9 +191,6 @@ new class extends Component
 
         $pass->update([
             'ending_km' => $this->ending_km,
-<<<<<<< HEAD
-            'return_time' => now()->format('H:i:s')
-=======
             'security_returned_time' => Carbon::now(),
         ]);
 
@@ -239,7 +199,6 @@ new class extends Component
             'status' => 'Security Returned Time',
             'from' => 'Admin',
             'color' => '#33FF00'
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
         ]);
 
         $this->reset('ending_km', 'vehiclePassId');
@@ -250,17 +209,14 @@ new class extends Component
     #[Computed]
     public function employeePasses()
     {
-        return EmployeePass::latest()->get();
+        return EmployeePass::orderByRaw('leaving_time IS NULL DESC, leaving_time ASC')->latest()->paginate(10);
     }
-<<<<<<< HEAD
-=======
 
     #[Computed]
     public function employeeMasterPasses()
     {
         return EmployeeMasterPass::latest()->paginate(10);
     }
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
 };
 ?>
 
@@ -270,22 +226,20 @@ new class extends Component
     <x-pages::dashboard.layout>
         <div class="border border-accent p-6 rounded-2xl my-6">
             <div class="flex items-center justify-between">
-                 <div>
-                    <flux:heading>Company Vehicle Pass</flux:heading>
-                    <flux:text class="mt-2">Track company vehicle movements with milleage records.</flux:text>
-                </div>
-<<<<<<< HEAD
                 <div>
-                    <flux:badge color="blue">TODO: Connect with Driver App (SuperApp)</flux:badge>
+                    <div>
+                        <flux:heading>Company Vehicle Pass</flux:heading>
+                        <flux:text class="mt-2">Track company vehicle movements with milleage records.</flux:text>
+                    </div>
+                </div> 
+                <div>
+                    <flux:button variant="outline" href="{{ route('dashboard.vehicle-pass-manual-entry') }}" wire:current="dashboard.vehicle-pass-manual-entry" wire:navigate>
+                        <flux:icon.plus variant="micro" /> Manual Entry
+                    </flux:button>
                 </div>
-            </div>
-
-            <flux:table class="mt-4">
-=======
             </div>
 
             <flux:table class="mt-4" :paginate="$this->vehiclePasses">
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
                 <flux:table.columns>
                     <flux:table.column>Driver Name</flux:table.column>
                     <flux:table.column>Vehicle No.</flux:table.column>
@@ -296,25 +250,12 @@ new class extends Component
                     <flux:table.column>Ending KM</flux:table.column>
                     <flux:table.column>Return Time</flux:table.column>
                     <flux:table.column></flux:table.column>
-<<<<<<< HEAD
-=======
                     <flux:table.column></flux:table.column>
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
                 </flux:table.columns>
 
                 <flux:table.rows>
                     @forelse ($this->vehiclePasses as $pass)
                         <flux:table.row wire:key="vehicle-pass-{{ $pass->id }}">
-<<<<<<< HEAD
-                            <flux:table.cell>{{ $pass->name }}</flux:table.cell>
-                            <flux:table.cell>{{ $pass->license_plate }}</flux:table.cell>
-                            <flux:table.cell>{{ $pass->purpose }}</flux:table.cell>
-                            <flux:table.cell>{{ $pass->destination }}</flux:table.cell>
-                            <flux:table.cell>{{ $pass->starting_km ?? '-' }}</flux:table.cell>
-                            <flux:table.cell>{{ $pass->leaving_time ?? '-' }}</flux:table.cell>
-                            <flux:table.cell>{{ $pass->ending_km ?? '-' }}</flux:table.cell>
-                            <flux:table.cell>{{ $pass->return_time ?? '-' }}</flux:table.cell>
-=======
                             <flux:table.cell>
                                 {!! $pass->drivers->map(fn($driver) => $driver->driver->name)->join('<br>') !!}
                             </flux:table.cell>
@@ -341,7 +282,6 @@ new class extends Component
                                     -
                                 @endif
                             </flux:table.cell>
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
                             <flux:table.cell>
                                 @if (! $pass->starting_km)
                                     <flux:button 
@@ -363,20 +303,14 @@ new class extends Component
                                         Record Return
                                     </flux:button>
                                 @else
-<<<<<<< HEAD
-                                    <flux:badge size="sm" color="green">Completed</flux:badge>
-                                @endif
-                            </flux:table.cell>
-=======
                                     <flux:badge size="sm" class="w-full items-center justify-center" color="green">Completed</flux:badge>
                                 @endif
                             </flux:table.cell>
                             <flux:table.cell>
-                                <a href="https://testsupport.ewindo.com/api/v1/rrs/r-car-driver-requests/driver-assignment-letter/{{ $pass->code }}" target="_blank">
+                                <a href="https://superapp.ewindo.co.id/api/v1/rrs/r-car-driver-requests/driver-assignment-letter/{{ $pass->code }}" target="_blank">
                                     <x-icon.eye variant="mini" />
                                 </a>
                             </flux:table.cell>
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
                         </flux:table.row>
                     @empty
                         <flux:table.row>
@@ -427,25 +361,13 @@ new class extends Component
                     <flux:heading>Employee Pass</flux:heading>
                     <flux:text class="mt-2">Track employee personal vehicle entries.</flux:text>
                 </div>
-<<<<<<< HEAD
-            </div>
-            <div class="my-6">
-                <form wire:submit.prevent="save" action="">
-                    <div class="grid grid-cols-4 gap-4">
-                        <flux:input wire:model="name" :label="__('Employee Name')" type="text" required autofocus />
-                        <flux:input wire:model="department" :label="__('Department')" type="text" />
-                        <flux:input wire:model="license_plate" :label="__('Vehicle Number')" type="text" />
-                        <flux:input wire:model="vehicle_type" :label="__('Vehicle Type')" type="text" />
-                    </div>
-                    <div class="flex items-end justify-end mt-4">
-                        <flux:button variant="primary" class="w-sm" type="submit">
-                            Record Entry
-                        </flux:button>
-=======
-                <div>
+                <div class="flex items-center justify-end gap-2">
                     <flux:modal.trigger name="master-data-vehicle">
                         <flux:button variant="primary">Master Data</flux:button>
                     </flux:modal.trigger>
+                    <flux:button variant="outline" href="{{ route('dashboard.employee-pass-manual-entry') }}" wire:current="dashboard.employee-pass-manual-entry" wire:navigate>
+                        <flux:icon.plus variant="micro" /> Manual Entry
+                    </flux:button>
                 </div>
             </div>
             <div class="my-6">
@@ -458,7 +380,7 @@ new class extends Component
                             <flux:input wire:model="department" :label="__('Department')" type="text" autocomplete="off" />
                         </div>
                         <div class="col-span-3">
-                            @if (count($plateOptions) > 1)
+                            @if (count($plateOptions) >= 1)
                                 <flux:label>Vehicle Number</flux:label>
                                 <flux:select wire:model="license_plate" class="mt-2">
                                     <flux:select.option value="">Select a vehicle</flux:select.option>
@@ -477,20 +399,15 @@ new class extends Component
                                 Record Entry
                             </flux:button>
                         </div>
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
                     </div>
                 </form>
             </div>
             <flux:separator variant="subtle" />
-            <flux:table class="mt-4">
+            <flux:table class="mt-4" :paginate="$this->employeePasses">
                 <flux:table.columns>
                     <flux:table.column>Employee Name</flux:table.column>
                     <flux:table.column>Department</flux:table.column>
                     <flux:table.column>Vehicle Number</flux:table.column>
-<<<<<<< HEAD
-                    <flux:table.column>Vehicle Type</flux:table.column>
-=======
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
                     <flux:table.column>Entry Time</flux:table.column>
                     <flux:table.column>Leaving Time</flux:table.column>
                 </flux:table.columns>
@@ -501,10 +418,6 @@ new class extends Component
                             <flux:table.cell>{{ $pass->name }}</flux:table.cell>
                             <flux:table.cell>{{ $pass->department }}</flux:table.cell>
                             <flux:table.cell>{{ $pass->license_plate }}</flux:table.cell>
-<<<<<<< HEAD
-                            <flux:table.cell>{{ $pass->vehicle_type }}</flux:table.cell>
-=======
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
                             <flux:table.cell>{{ $pass->entry_time }}</flux:table.cell>
                             <flux:table.cell>
                                 @if (! $pass->leaving_time)
@@ -518,11 +431,7 @@ new class extends Component
                         <flux:table.row>
                             <flux:table.cell colspan="6" class="text-center py-6">
                                 <flux:text class="text-zinc-400 italic">
-<<<<<<< HEAD
-                                    No employe vehicle pass record available.
-=======
                                     No employee vehicle pass record available.
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
                                 </flux:text>
                             </flux:table.cell>
                         </flux:table.row>
@@ -530,11 +439,6 @@ new class extends Component
                 </flux:table.rows>
             </flux:table>
         </div>
-<<<<<<< HEAD
-    </x-pages::dashboard.layout>
-
-</section>
-=======
 
         <flux:modal name="master-data-vehicle" class="max-w-7xl">
             <div class="space-y-6">
@@ -622,7 +526,10 @@ new class extends Component
 
 <script src="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10.2.9/dist/autoComplete.min.js"></script>
 <script>
-    const autoCompleteJS = new autoComplete({
+    if (window.autoCompleteJS) {
+        window.autoCompleteJS.destroy();
+    }
+    window.autoCompleteJS = new autoComplete({
         selector: "#employee-vehicle-master",
         data: {
             src: async (query) => {
@@ -648,7 +555,7 @@ new class extends Component
                 selection: (event) => {
                     const selection = event.detail.selection.value;
 
-                    autoCompleteJS.input.value = selection.fullname;
+                    window.autoCompleteJS.input.value = selection.fullname;
                     $wire.set('employeeMaster', selection.fullname);
                     $wire.set('departmentMaster', selection.department?.name ?? '');
                 }
@@ -656,7 +563,10 @@ new class extends Component
         }
     });
 
-    const autoCompleteJS2 = new autoComplete({
+    if (window.autoCompleteJS2) {
+        window.autoCompleteJS2.destroy();
+    }
+    window.autoCompleteJS2 = new autoComplete({
         selector: "#employee-vehicle-pass",
         data: {
             src: async (query) => {
@@ -682,7 +592,7 @@ new class extends Component
                 selection: (event) => {
                     const selection = event.detail.selection.value;
 
-                    autoCompleteJS2.input.value = selection.employee_name;
+                    window.autoCompleteJS2.input.value = selection.employee_name;
                     $wire.set('name', selection.employee_name);
                     $wire.set('department', selection.department);
 
@@ -702,7 +612,10 @@ new class extends Component
         }
     });
 
-    const autoCompleteJS3 = new autoComplete({
+    if (window.autoCompleteJS3) {
+        window.autoCompleteJS3.destroy();
+    }
+    window.autoCompleteJS3 = new autoComplete({
         selector: "#license-vehicle-pass",
         threshold: 1,
         data: {
@@ -736,7 +649,7 @@ new class extends Component
                 selection: (event) => {
                     const selection = event.detail.selection.value;
 
-                    autoCompleteJS3.input.value = selection.license_plate;
+                    window.autoCompleteJS3.input.value = selection.license_plate;
                     $wire.set('license_plate', selection.license_plate);
                     $wire.set('name', selection.employee_name);
                     $wire.set('department', selection.department);
@@ -750,4 +663,3 @@ new class extends Component
         }
     });
 </script>
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24

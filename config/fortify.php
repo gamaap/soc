@@ -73,11 +73,7 @@ return [
     |
     */
 
-<<<<<<< HEAD
-    'home' => '/dashboard/request',
-=======
     'home' => '/dashboard/late',
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
 
     /*
     |--------------------------------------------------------------------------
@@ -148,13 +144,9 @@ return [
     */
 
     'features' => [
-<<<<<<< HEAD
         // Features::registration(),
-=======
-        Features::registration(),
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
         Features::resetPasswords(),
-        Features::emailVerification(),
+        // Features::emailVerification(),
         Features::twoFactorAuthentication([
             'confirm' => true,
             'confirmPassword' => true,

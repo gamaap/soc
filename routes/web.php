@@ -1,12 +1,9 @@
 <?php
 
-<<<<<<< HEAD
-=======
 use App\Models\SuperappDepartment;
 use App\Models\SuperappDivision;
 use App\Models\SuperappEmployee;
 use Illuminate\Http\Request;
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'pages::auth.login')->name('login')->middleware('guest');
@@ -21,11 +18,18 @@ Route::middleware(['auth'])->group(function () {
     Route::livewire('dashboard/vehicle-pass', 'pages::dashboard.vehicle-pass')->name('dashboard.vehicle-pass');
     Route::livewire('dashboard/keys/vehicle', 'pages::dashboard.vehicle-keys')->name('dashboard.keys.vehicle');
     Route::livewire('dashboard/keys/facility', 'pages::dashboard.facility-keys')->name('dashboard.keys.facility');
+
+    Route::livewire('dashboard/late/manual-entry', 'pages::dashboard.late-manual-entry')->name('dashboard.late-manual-entry');
+    Route::livewire('dashboard/break/manual-entry', 'pages::dashboard.break-manual-entry')->name('dashboard.break-manual-entry');
+    Route::livewire('dashboard/night-shift/manual-entry', 'pages::dashboard.night-shift-manual-entry')->name('dashboard.night-shift-manual-entry');
+    Route::livewire('dashboard/visitor/manual-entry', 'pages::dashboard.visitor-manual-entry')->name('dashboard.visitor-manual-entry');
+    Route::livewire('dashboard/delivery/manual-entry', 'pages::dashboard.delivery-manual-entry')->name('dashboard.delivery-manual-entry');
+    Route::livewire('dashboard/vehicle-pass/manual-entry', 'pages::dashboard.vehicle-pass-manual-entry')->name('dashboard.vehicle-pass-manual-entry');
+    Route::livewire('dashboard/vehicle-pass/employee-pass/manual-entry', 'pages::dashboard.employee-pass-manual-entry')->name('dashboard.employee-pass-manual-entry');
+    Route::livewire('dashboard/keys/vehicle/manual-entry', 'pages::dashboard.vehicle-keys-manual-entry')->name('dashboard.vehicle-keys-manual-entry');
+    Route::livewire('dashboard/keys/facility/manual-entry', 'pages::dashboard.facility-keys-manual-entry')->name('dashboard.keys.facility-manual-entry');
 });
 
-<<<<<<< HEAD
-require __DIR__.'/settings.php';
-=======
 Route::get('/employees/api', function (Request $request) {
     $search = $request->query('search');
 
@@ -85,4 +89,3 @@ Route::get('/divisions/api', function() {
 })->middleware('auth');
 
 require __DIR__.'/settings.php';
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24

@@ -1,14 +1,8 @@
 <div class="my-4">
     <flux:navbar class="-mb-px flex justify-between">
-<<<<<<< HEAD
-        <flux:navbar.item icon="user-check" :href="route('dashboard.request')" wire:current="dashboard.request" wire:navigate>
-            Request
-        </flux:navbar.item>
-=======
         {{-- <flux:navbar.item icon="user-check" :href="route('dashboard.request')" wire:current="dashboard.request" wire:navigate>
             Request
         </flux:navbar.item> --}}
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
         <flux:navbar.item icon="clock" :href="route('dashboard.late')" wire:current="dashboard.late" wire:navigate>
             Late
         </flux:navbar.item>

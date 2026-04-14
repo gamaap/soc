@@ -4,11 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-<<<<<<< HEAD
-    "content-hash": "63028766c4e0986010161b1f1958f00d",
-=======
     "content-hash": "4b80ea15ad9bf79d4cff4ab84350da47",
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -6943,8 +6939,6 @@
             "time": "2025-03-19T14:43:43+00:00"
         },
         {
-<<<<<<< HEAD
-=======
             "name": "laravel/boost",
             "version": "v2.3.4",
             "source": {
@@ -7084,7 +7078,6 @@
             "time": "2026-03-12T12:46:43+00:00"
         },
         {
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
             "name": "laravel/pail",
             "version": "v1.2.6",
             "source": {
@@ -7233,8 +7226,6 @@
             "time": "2026-03-10T20:37:18+00:00"
         },
         {
-<<<<<<< HEAD
-=======
             "name": "laravel/roster",
             "version": "v0.5.1",
             "source": {
@@ -7296,7 +7287,6 @@
             "time": "2026-03-05T07:58:43+00:00"
         },
         {
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
             "name": "laravel/sail",
             "version": "v1.53.0",
             "source": {

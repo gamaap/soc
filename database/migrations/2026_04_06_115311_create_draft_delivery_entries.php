@@ -11,18 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('visitors', function (Blueprint $table) {
+        Schema::create('draft_delivery_entries', function (Blueprint $table) {
             $table->id();
             $table->date('date');
             $table->string('name');
             $table->string('company')->nullable();
             $table->string('visiting');
             $table->string('license_plate')->nullable();
-            $table->integer('card_number')->nullable();
             $table->text('purpose');
             $table->time('entry_time');
             $table->time('exit_time')->nullable();
-            $table->auditColumns();
+            $table->foreignId('user_id')->constrained('users');
+            $table->timestamps();
         });
     }
 
@@ -31,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('visitors');
+        Schema::dropIfExists('draft_delivery_entries');
     }
 };

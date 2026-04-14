@@ -5,13 +5,14 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
-class Visitor extends Model
+class DraftEmployeePassEntry extends Model
 {
     protected $guarded = [];
 
-    protected $casts = [
-        'date' => 'date'
-    ];
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function getFormattedDateAttribute()
     {
@@ -23,7 +24,7 @@ class Visitor extends Model
         return $value ? Carbon::parse($value)->format('H:i') : null;
     }
 
-    public function getExitTimeAttribute($value)
+    public function getLeavingTimeAttribute($value)
     {
         return $value ? Carbon::parse($value)->format('H:i') : null;
     }

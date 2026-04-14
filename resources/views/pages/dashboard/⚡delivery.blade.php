@@ -12,6 +12,7 @@ new class extends Component
     public $name;
     public $company;
     public $visiting;
+    public $card_number;
     public $license_plate;
     public $purpose;
     public $deliveryId = null;
@@ -64,6 +65,7 @@ new class extends Component
             'company' => $this->company,
             'visiting' => $this->visiting,
             'license_plate' => $this->license_plate,
+            'card_number' => $this->card_number,
             'purpose' => $this->purpose,
             'date' => $now->toDateString(),
             'entry_time' => $now->format('H:i:s'),
@@ -96,17 +98,13 @@ new class extends Component
     #[Computed]
     public function deliveries()
     {
-<<<<<<< HEAD
-        return Delivery::with('items')->latest()->get();
-=======
         $today = today();
         return Delivery::with('items')->where(function($q) use ($today) {
             $q->whereDate('date', $today)
               ->orWhere(function($sub) use ($today) {
                   $sub->whereDate('date', '<', $today)->whereNull('exit_time');
               });
-        })->latest()->get();
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
+        })->orderByRaw('exit_time IS NULL DESC, exit_time ASC')->latest()->paginate(10);
     }
 
     #[Computed]
@@ -139,12 +137,18 @@ new class extends Component
                     <flux:text class="mt-2">Track delivery entries and exits.</flux:text>
                 </div>
 
-                <flux:modal.trigger name="record-delivery">
-                    <flux:button icon="truck">Record Delivery Entry</flux:button>
-                </flux:modal.trigger>
+                <div class="flex justify-end gap-2">
+                    <flux:button variant="outline" href="{{ route('dashboard.delivery-manual-entry') }}" wire:current="dashboard.delivery-manual-entry" wire:navigate>
+                        <flux:icon.plus variant="micro" /> Manual Entry
+                    </flux:button>
+                    <flux:modal.trigger name="record-delivery">
+                        <flux:button icon="truck">Record Delivery Entry</flux:button>
+                    </flux:modal.trigger>
+                </div>
+
             </div>
 
-            <flux:table class="mt-4">
+            <flux:table class="mt-4" :paginate="$this->deliveries">
                 <flux:table.columns>
                     <flux:table.column>Date</flux:table.column>
                     <flux:table.column>Name</flux:table.column>
@@ -233,6 +237,10 @@ new class extends Component
                                 <flux:text class="mt-2" variant="strong">{{ $this->delivery->entry_time }}</flux:text>
                             </div>
                             <div>
+                                <flux:heading>Card Number</flux:heading>
+                                <flux:text class="mt-2" variant="strong">{{ $this->delivery->card_number ?? '-' }}</flux:text>
+                            </div>
+                            <div>
                                 <flux:heading>Exit Time</flux:heading>
                                 @if ($this->delivery->exit_time)
                                     <flux:text class="mt-2" variant="strong">
@@ -285,8 +293,13 @@ new class extends Component
                             <flux:input wire:model="company" label="Company (Optional)" placeholder="Enter Company Name" autocomplete="off" />
                         </div>
                         <div class="grid grid-cols-2 gap-4">
-                            <flux:input wire:model="visiting" label="Visiting" placeholder="Person being visited" autocomplete="off" />
+                            <div class="autoComplete_wrapper" wire:ignore>
+                                <flux:input wire:model="visiting" id="delivery-for" label="Delivery For" placeholder="Recipient Name" autocomplete="off" />
+                            </div>
                             <flux:input wire:model="license_plate" label="License Plate (Optional)" placeholder="Enter License Plate" autocomplete="off" />
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <flux:input wire:model="card_number" type="number" label="Card Number" placeholder="Enter Card Number" autocomplete="off" />
                         </div>
                         
                         <div class="flex items-center justify-between mb-3">
@@ -338,3 +351,39 @@ new class extends Component
         </div>
     </x-pages::dashboard.layout>
 </section>
+
+<script src="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10.2.9/dist/autoComplete.min.js"></script>
+<script>
+    const autoCompleteJS = new autoComplete({
+        selector: "#delivery-for",
+        data: {
+            src: async (query) => {
+                try {
+                    const source = await fetch(`/employees/api?search=${encodeURIComponent(query)}`);
+                    const data = await source.json();
+
+                    return data;
+                } catch (error) {
+                    return error;
+                }
+            },
+            keys: ["fullname"],
+        },
+        resultsList: {
+            maxResults: 50
+        },
+        resultItem: {
+            highlight: true
+        },
+        events: {
+            input: {
+                selection: (event) => {
+                    const selection = event.detail.selection.value;
+
+                    autoCompleteJS.input.value = selection.fullname;
+                    $wire.set('visiting', selection.fullname);
+                }
+            }
+        }
+    });
+</script>

@@ -12,17 +12,18 @@ new class extends Component
     public $company;
     public $visiting;
     public $license_plate;
+    public $card_number;
     public $purpose;
     public $visitorId = null;
     
     public function save()
     {
         $this->validate([
-            'name' => 'required|string|min:3',
+            'name' => 'required|string',
             'company' => 'nullable|min:3',
             'visiting' => 'required|string|min:3',
             'license_plate' => 'nullable|min:3',
-            'purpose' => 'nullable|max:500',
+            'purpose' => 'required|max:500',
         ]);
 
         $now = Carbon::now();
@@ -32,6 +33,7 @@ new class extends Component
             'company' => $this->company,
             'visiting' => $this->visiting,
             'license_plate' => $this->license_plate,
+            'card_number' => $this->card_number,
             'purpose' => $this->purpose,
             'date' => $now->toDateString(),
             'entry_time' => $now->format('H:i:s'),
@@ -56,17 +58,13 @@ new class extends Component
     #[Computed]
     public function visitors()
     {
-<<<<<<< HEAD
-        return Visitor::latest()->get();
-=======
         $today = today();
         return Visitor::where(function($q) use ($today) {
             $q->whereDate('date', $today)
               ->orWhere(function($sub) use ($today) {
                   $sub->whereDate('date', '<', $today)->whereNull('exit_time');
               });
-        })->latest()->get();
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
+        })->orderByRaw('exit_time IS NULL DESC, exit_time ASC')->latest()->paginate(10);
     }
 
     #[Computed]
@@ -99,12 +97,17 @@ new class extends Component
                     <flux:text class="mt-2">Track visitor entries and exits.</flux:text>
                 </div>
 
-                <flux:modal.trigger name="record-visitor">
-                    <flux:button icon="users">Record Visitor Entry</flux:button>
-                </flux:modal.trigger>
+                <div class="flex justify-end gap-x-2">
+                    <flux:button variant="outline" href="{{ route('dashboard.visitor-manual-entry') }}" wire:current="dashboard.visitor-manual-entry" wire:navigate>
+                        <flux:icon.plus variant="micro" /> Manual Entry
+                    </flux:button>
+                    <flux:modal.trigger name="record-visitor">
+                        <flux:button icon="users">Record Visitor Entry</flux:button>
+                    </flux:modal.trigger>
+                </div>
             </div>
 
-            <flux:table class="mt-4">
+            <flux:table class="mt-4" :paginate="$this->visitors">
                 <flux:table.columns>
                     <flux:table.column>Date</flux:table.column>
                     <flux:table.column>Name</flux:table.column>
@@ -172,8 +175,13 @@ new class extends Component
                             <flux:input wire:model="company" label="Company (Optional)" placeholder="Enter Company Name" autocomplete="off" />
                         </div>
                         <div class="grid grid-cols-2 gap-4">
-                            <flux:input wire:model="visiting" label="Visiting" placeholder="Person being visited" autocomplete="off" />
+                            <div class="autoComplete_wrapper" wire:ignore>
+                                <flux:input wire:model="visiting" id="visiting" label="Visiting" placeholder="Person being visited" autocomplete="off" />
+                            </div>
                             <flux:input wire:model="license_plate" label="License Plate (Optional)" placeholder="Enter License Plate" autocomplete="off" />
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <flux:input wire:model="card_number" type="number" label="Card Number" placeholder="Enter Card Number" autocomplete="off" />
                         </div>
                         <flux:textarea
                             wire:model="purpose"
@@ -221,6 +229,10 @@ new class extends Component
                                 <flux:text class="mt-2" variant="strong">{{ $this->visitor->entry_time }}</flux:text>
                             </div>
                             <div>
+                                <flux:heading>Card Number</flux:heading>
+                                <flux:text class="mt-2" variant="strong">{{ $this->visitor->card_number }}</flux:text>
+                            </div>
+                            <div>
                                 <flux:heading>Exit Time</flux:heading>
                                 @if ($this->visitor->exit_time)
                                     <flux:text class="mt-2" variant="strong">
@@ -259,7 +271,43 @@ new class extends Component
                     @endif
                 </div>
             </flux:modal>
-
+        
         </div>
     </x-pages::dashboard.layout>
 </section>
+
+<script src="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10.2.9/dist/autoComplete.min.js"></script>
+<script>
+    const autoCompleteJS = new autoComplete({
+        selector: "#visiting",
+        data: {
+            src: async (query) => {
+                try {
+                    const source = await fetch(`/employees/api?search=${encodeURIComponent(query)}`);
+                    const data = await source.json();
+
+                    return data;
+                } catch (error) {
+                    return error;
+                }
+            },
+            keys: ["fullname"],
+        },
+        resultsList: {
+            maxResults: 50
+        },
+        resultItem: {
+            highlight: true
+        },
+        events: {
+            input: {
+                selection: (event) => {
+                    const selection = event.detail.selection.value;
+
+                    autoCompleteJS.input.value = selection.fullname;
+                    $wire.set('visiting', selection.fullname);
+                }
+            }
+        }
+    });
+</script>

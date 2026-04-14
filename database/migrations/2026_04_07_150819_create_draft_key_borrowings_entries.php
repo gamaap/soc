@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('key_borrowings', function (Blueprint $table) {
+        Schema::create('draft_key_borrowings_entries', function (Blueprint $table) {
             $table->id();
             $table->date('date');
             $table->foreignId('vehicle_key_id')->nullable()->constrained()->cascadeOnDelete();
@@ -24,7 +24,8 @@ return new class extends Migration
             $table->timestamp('returned_at')->nullable();
             $table->foreignId('borrow_recorded_by')->nullable();
             $table->foreignId('return_recorded_by')->nullable();
-            $table->auditColumns();
+            $table->foreignId('user_id')->constrained('users');
+            $table->timestamps();
         });
     }
 
@@ -33,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('key_borrowings');
+        Schema::dropIfExists('draft_key_borrowings_entries');
     }
 };

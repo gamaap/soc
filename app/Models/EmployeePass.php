@@ -2,9 +2,20 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class EmployeePass extends Model
 {
     protected $guarded = [];
+
+    public function getEntryTimeAttribute($value)
+    {
+        return $value ? Carbon::parse($value)->format('H:i') : null;
+    }
+
+    public function getLeavingTimeAttribute($value)
+    {
+        return $value ? Carbon::parse($value)->format('H:i') : null;
+    }
 }

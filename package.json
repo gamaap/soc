@@ -8,10 +8,7 @@
     },
     "dependencies": {
         "@tailwindcss/vite": "^4.1.11",
-<<<<<<< HEAD
-=======
         "@tarekraafat/autocomplete.js": "^10.2.9",
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
         "autoprefixer": "^10.4.20",
         "axios": "^1.7.4",
         "concurrently": "^9.0.1",

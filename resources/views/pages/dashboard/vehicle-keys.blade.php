@@ -15,6 +15,7 @@ new class extends Component
     public $borrower_department;
     public $returned_name;
     public $returned_department;
+    public $selectedBorrowingId = '';
 
     public function save()
     {
@@ -47,6 +48,12 @@ new class extends Component
     {
         $this->keyId = $id;
 
+        $borrowings = KeyBorrowing::where('vehicle_key_id', $id)
+            ->whereNull('returned_at')
+            ->get();
+
+        $this->selectedBorrowingId = $borrowings->count() === 1 ? $borrowings->first()->id : '';
+
         Flux::modal('return-key')->show();
     }
 
@@ -57,8 +64,6 @@ new class extends Component
             'borrower_department' => 'required|string|min:3'
         ]);
 
-<<<<<<< HEAD
-=======
         $key = VehicleKey::findOrFail($this->keyId);
 
         if ($key->available <= 0) {
@@ -66,8 +71,8 @@ new class extends Component
             return;
         }
 
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
         KeyBorrowing::create([
+			'date' => today(),
             'vehicle_key_id' => $this->keyId,
             'borrower_name' => $this->borrower_name,
             'borrower_department' => $this->borrower_department,
@@ -83,15 +88,15 @@ new class extends Component
     public function returnKey()
     {
         $this->validate([
+            'selectedBorrowingId' => 'required|integer',
             'returned_name' => 'required|string|min:3',
             'returned_department' => 'required|string|min:3'
         ]);
 
-        $borrowing = KeyBorrowing::where('vehicle_key_id', $this->keyId)
-            ->whereNull('returned_at')
-            ->first();
+        $borrowing = KeyBorrowing::find($this->selectedBorrowingId);
 
-        if (! $borrowing) {
+        if (! $borrowing || $borrowing->vehicle_key_id !== $this->keyId || $borrowing->returned_at !== null) {
+            $this->addError('selectedBorrowingId', 'Invalid borrowing selected.');
             return;
         }
 
@@ -102,7 +107,7 @@ new class extends Component
             'return_recorded_by' => auth()->id()
         ]);
 
-        $this->reset('returned_name','keyId','returned_department');
+        $this->reset('returned_name', 'keyId', 'returned_department', 'selectedBorrowingId');
 
         Flux::modal('return-key')->close();
     }
@@ -117,7 +122,7 @@ new class extends Component
     #[Computed]
     public function vehicleKeys()
     {
-        return VehicleKey::with('borrowings')->get();        
+        return VehicleKey::with('borrowings')->paginate(10);        
     }
 
     #[Computed]
@@ -127,9 +132,6 @@ new class extends Component
             return collect();
         }
 
-<<<<<<< HEAD
-        return KeyBorrowing::where('vehicle_key_id', $this->keyId)
-=======
         $today = today();
         return KeyBorrowing::where('vehicle_key_id', $this->keyId)
             ->where(function($q) use ($today) {
@@ -138,7 +140,6 @@ new class extends Component
                       $sub->whereDate('borrowed_at', '<', $today)->whereNull('returned_at');
                   });
             })
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
             ->latest()
             ->get();
     }
@@ -151,6 +152,18 @@ new class extends Component
         }
 
         return VehicleKey::with('borrowings')->find($this->keyId);
+    }
+
+    #[Computed]
+    public function currentBorrow()
+    {
+        if (! $this->keyId) {
+            return null;
+        }
+
+        return KeyBorrowing::where('vehicle_key_id', $this->keyId)
+            ->whereNull('returned_at')
+            ->get();
     }
 
     #[Computed]
@@ -174,12 +187,17 @@ new class extends Component
             <flux:heading>Vehicle Keys</flux:heading>
             <flux:text class="mt-2">Manage keys for company vehicles.</flux:text>
         </div>
-        <flux:modal.trigger name="add-vehicle-key">
-            <flux:button icon="plus">Add Vehicle Keys</flux:button>
-        </flux:modal.trigger>
+        <div class="flex items-center justify-end gap-2">
+            <flux:button variant="outline" href="{{ route('dashboard.vehicle-keys-manual-entry') }}" wire:current="dashboard.vehicle-keys-manual-entry" wire:navigate>
+                <flux:icon.plus variant="micro" /> Manual Entry
+            </flux:button>
+            <flux:modal.trigger name="add-vehicle-key">
+                <flux:button icon="plus" variant="primary">Add Vehicle Keys</flux:button>
+            </flux:modal.trigger>
+        </div>
     </div>
 
-     <flux:table class="mt-4">
+     <flux:table class="mt-4" :paginate="$this->vehicleKeys">
         <flux:table.columns>
             <flux:table.column>Vehicle Number</flux:table.column>
             <flux:table.column>Car Type</flux:table.column>
@@ -198,16 +216,6 @@ new class extends Component
                     <flux:table.cell>{{ $key->total_keys }}</flux:table.cell>
                     <flux:table.cell>{{ $key->available }}</flux:table.cell>
                     <flux:table.cell>
-<<<<<<< HEAD
-                        @if ($key->available !== 0)
-                            <flux:badge size="sm" color="green">Available</flux:badge>
-                        @else
-                            <flux:badge size="sm" color="red">All Borrowed</flux:badge>
-                        @endif
-                    </flux:table.cell>
-                    <flux:table.cell>
-                        @if ($key->available == $key->total_keys)
-=======
                         @if ($key->available === $key->total_keys)
                             <flux:badge size="sm" color="green">Available</flux:badge>
                         @elseif ($key->available === 0)
@@ -218,36 +226,24 @@ new class extends Component
                     </flux:table.cell>
                     <flux:table.cell class="flex gap-2" class="flex gap-2">
                         @if ($key->available > 0)
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
                             <flux:button 
                                 icon="hand-helping" 
                                 size="sm"
                                 wire:click="openBorrowModal({{ $key->id }})"
                                 wire:target="openBorrowModal({{ $key->id }})"
-<<<<<<< HEAD
-                                >
-                            Borrow
-                        </flux:button>
-                        @else
-=======
                             >
                                 Borrow
                             </flux:button>
                         @endif
 
                         @if ($key->available < $key->total_keys)
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
                             <flux:button 
                                 icon="undo-2" 
                                 size="sm"
                                 variant="primary"
                                 wire:click="openReturnModal({{ $key->id }})"
                                 wire:target="openReturnModal({{ $key->id }})"
-<<<<<<< HEAD
-                                >
-=======
                             >
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
                                 Return
                             </flux:button>
                         @endif
@@ -300,15 +296,10 @@ new class extends Component
                     <flux:heading size="lg">Borrow Key</flux:heading>
                     <flux:text class="mt-2">Record key for borrowing details.</flux:text>
                 </div>
-<<<<<<< HEAD
-                <flux:input wire:model="borrower_name" label="Borrower Name" placeholder="John" />
-                <flux:input wire:model="borrower_department" label="Department" placeholder="Information Technology" />
-=======
                 <div class="autoComplete_wrapper" wire:ignore>
                     <flux:input id="borrower-name-vehicle" wire:model="borrower_name" label="Borrower Name" autocomplete="off" />
                 </div>
                 <flux:input wire:model="borrower_department" autocomplete="off" label="Department" readonly />
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
                 <div class="flex">
                     <flux:spacer />
                     <flux:button type="submit" variant="primary" class="w-full">Record Borrow</flux:button>
@@ -324,15 +315,50 @@ new class extends Component
                     <flux:heading size="lg">Return Key</flux:heading>
                     <flux:text class="mt-2">Record key return details.</flux:text>
                 </div>
-<<<<<<< HEAD
-                <flux:input wire:model="returned_name" label="Return Person Name" placeholder="John" />
-                <flux:input wire:model="returned_department" label="Department" placeholder="Information Technology" />
-=======
+
+                @if($this->currentBorrow && count($this->currentBorrow) > 1)
+                    <div class="bg-blue-500/10 border border-blue-500/20 p-4 rounded-lg">
+                        <flux:text class="text-blue-400 font-semibold mb-2">Currently Borrowed Keys</flux:text>
+                        @foreach($this->currentBorrow as $borrowing)
+                            <div class="text-sm mb-2">
+                                <flux:text class="font-medium">{{ $borrowing->borrower_name }}</flux:text>
+                                <flux:text class="text-xs text-gray-400">
+                                    {{ $borrowing->borrower_department }} · 
+                                    {{ \Carbon\Carbon::parse($borrowing->borrowed_at)->format('H:i') }}
+                                </flux:text>
+                            </div>
+                        @endforeach
+                    </div>
+                    <div>
+                        <flux:label>Select Key to Return</flux:label>
+                        <flux:select wire:model="selectedBorrowingId" class="mt-2">
+                            <flux:select.option value="">-- Select a key --</flux:select.option>
+                            @foreach($this->currentBorrow as $borrowing)
+                                <flux:select.option value="{{ $borrowing->id }}">
+                                    {{ $borrowing->borrower_name }} ({{ $borrowing->borrower_department }}) - {{ \Carbon\Carbon::parse($borrowing->borrowed_at)->format('H:i') }}
+                                </flux:select.option>
+                            @endforeach
+                        </flux:select>
+                        @error('selectedBorrowingId')
+                            <span class="text-red-500 text-sm">{{ $message }}</span>
+                        @enderror
+                    </div>
+                @elseif($this->currentBorrower)
+                    <div class="bg-blue-500/10 border border-blue-500/20 p-4 rounded-lg">
+                        <flux:text class="text-blue-400 font-semibold mb-2">Currently Borrowed By</flux:text>
+                        <flux:text class="font-medium">{{ $this->currentBorrower->borrower_name }}</flux:text>
+                        <flux:text class="text-sm text-gray-400">{{ $this->currentBorrower->borrower_department }} - {{ \Carbon\Carbon::parse($this->currentBorrower->borrowed_at)->format('H:i') }}</flux:text>
+                        <input type="hidden" wire:model="selectedBorrowingId" value="{{ $this->currentBorrower->id }}">
+                        @error('selectedBorrowingId')
+                            <span class="text-red-500 text-sm">{{ $message }}</span>
+                        @enderror
+                    </div>
+                @endif
+
                 <div class="autoComplete_wrapper" wire:ignore>
                     <flux:input wire:model="returned_name" id="returned-name-vehicle" autocomplete="off" label="Return Person Name" />
                 </div>
                 <flux:input wire:model="returned_department" label="Department" autocomplete="off" />
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
                 <div class="flex">
                     <flux:spacer />
                     <flux:button type="submit" variant="primary" class="w-full">Record Return</flux:button>
@@ -440,10 +466,6 @@ new class extends Component
             @endforelse
         </div>
     </flux:modal>
-<<<<<<< HEAD
-    
-</x-pages::dashboard.keys>
-=======
 </x-pages::dashboard.keys>
 
 <script src="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10.2.9/dist/autoComplete.min.js"></script>
@@ -516,4 +538,3 @@ new class extends Component
         }
     });
 </script>
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24

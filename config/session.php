@@ -18,11 +18,7 @@ return [
     |
     */
 
-<<<<<<< HEAD
     'driver' => 'database',
-=======
-    'driver' => env('SESSION_DRIVER', 'database'),
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
 
     /*
     |--------------------------------------------------------------------------
@@ -36,15 +32,9 @@ return [
     |
     */
 
-<<<<<<< HEAD
     'lifetime' => 120,
 
     'expire_on_close' => false,
-=======
-    'lifetime' => (int) env('SESSION_LIFETIME', 120),
-
-    'expire_on_close' => env('SESSION_EXPIRE_ON_CLOSE', false),
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
 
     /*
     |--------------------------------------------------------------------------
@@ -57,11 +47,7 @@ return [
     |
     */
 
-<<<<<<< HEAD
     'encrypt' => false,
-=======
-    'encrypt' => env('SESSION_ENCRYPT', false),
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
 
     /*
     |--------------------------------------------------------------------------
@@ -141,14 +127,7 @@ return [
     |
     */
 
-    'cookie' => env(
-        'SESSION_COOKIE',
-<<<<<<< HEAD
-        Str::slug('SOC') . '-session',
-=======
-        Str::slug((string) env('APP_NAME', 'laravel')).'-session',
->>>>>>> 218e14397ddbd6d3595a575c996a38f5b38bfd24
-    ),
+    'cookie' => Str::slug('SOC') . '-session',
 
     /*
     |--------------------------------------------------------------------------
