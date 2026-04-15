@@ -131,7 +131,7 @@ new class extends Component
 
     public function verifyAndSubmit()
     {
-        $user = SuperappUser::where('nik', '251016006')->first();
+        $user = SuperappUser::where('nik', '180702001')->first();
 
         if (! Hash::check($this->securityPin, $user->pin_code)) {
             $this->verificationError = 'Invalid head of security PIN.';
