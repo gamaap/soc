@@ -17,6 +17,12 @@ new class extends Component
     public $department = '';
     public $photo = '';
     public $photoLoading = false;
+    public $search = '';
+
+    public function updatedSearch()
+    {
+        $this->resetPage();
+    }
 
     public function updatedCardNumber()
     {
@@ -79,7 +85,10 @@ new class extends Component
     #[Computed]
     public function breaks()
     {
-        return Breaks::whereDate('date', today())->latest()->paginate(10);
+        return Breaks::whereDate('date', today())
+            ->where('name', 'like', '%' . $this->search . '%')
+            ->latest()
+            ->paginate(10);
     }
 };
 ?>
@@ -153,6 +162,9 @@ new class extends Component
             <flux:text class="mt-2">View all break time records.</flux:text>
 
             <flux:table class="mt-4" :paginate="$this->breaks">
+                <div class="my-3 p-2">
+                    <flux:input icon="magnifying-glass" placeholder="Search employee name" autocomplete="off" wire:model.live="search" />
+                </div>
                 <flux:table.columns>
                     <flux:table.column>Photo</flux:table.column>
                     <flux:table.column>Date</flux:table.column>

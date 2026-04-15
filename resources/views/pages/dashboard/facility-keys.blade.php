@@ -19,6 +19,12 @@ new class extends Component
     public $returned_name;
     public $returned_department;
     public $selectedBorrowingId = '';
+    public $search = '';
+
+    public function updatedSearch()
+    {
+        $this->resetPage();
+    }
 
     public function save()
     {
@@ -118,7 +124,9 @@ new class extends Component
     #[Computed]
     public function facilityKeys()
     {
-        return FacilityKey::with('borrowings')->paginate(10);        
+        return FacilityKey::with('borrowings')
+            ->where('key_name', 'like', '%' . $this->search . '%')
+            ->paginate(10);
     }
 
     #[Computed]
@@ -194,6 +202,9 @@ new class extends Component
     </div>
 
      <flux:table class="mt-4" :paginate="$this->facilityKeys">
+        <div class="my-3 p-2">
+            <flux:input icon="magnifying-glass" placeholder="Search facility key name" autocomplete="off" wire:model.live="search" />
+        </div>
         <flux:table.columns>
             <flux:table.column>Key Name</flux:table.column>
             <flux:table.column>Area</flux:table.column>

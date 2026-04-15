@@ -19,6 +19,7 @@ new class extends Component
     public $returned_name;
     public $returned_department;
     public $selectedBorrowingId = '';
+    public $search = '';
 
     public function save()
     {
@@ -125,7 +126,8 @@ new class extends Component
     #[Computed]
     public function vehicleKeys()
     {
-        return VehicleKey::with('borrowings')->paginate(10);        
+        return VehicleKey::with('borrowings')
+            ->paginate(10);
     }
 
     #[Computed]
@@ -200,8 +202,11 @@ new class extends Component
             </flux:modal.trigger>
         </div>
     </div>
-
+    
     <flux:table class="mt-4" :paginate="$this->vehicleKeys">
+        <div class="my-3 p-2">
+            <flux:input icon="magnifying-glass" placeholder="Search vehicle number key" autocomplete="off" wire:model.live="search" />
+        </div>
         <flux:table.columns>
             <flux:table.column>Vehicle Number</flux:table.column>
             <flux:table.column>Car Type</flux:table.column>

@@ -18,7 +18,13 @@ new class extends Component
     public $card_number;
     public $purpose;
     public $visitorId = null;
-    
+    public $search = '';
+
+    public function updatedSearch()
+    {
+        $this->resetPage();
+    }
+
     public function save()
     {
         $this->validate([
@@ -67,7 +73,9 @@ new class extends Component
               ->orWhere(function($sub) use ($today) {
                   $sub->whereDate('date', '<', $today)->whereNull('exit_time');
               });
-        })->orderByRaw('exit_time IS NULL DESC, exit_time ASC')->latest()->paginate(10);
+        })
+        ->where('name', 'like', '%' . $this->search . '%')
+        ->orderByRaw('exit_time IS NULL DESC, exit_time ASC')->latest()->paginate(10);
     }
 
     #[Computed]
@@ -111,6 +119,9 @@ new class extends Component
             </div>
 
             <flux:table class="mt-4" :paginate="$this->visitors">
+                <div class="my-3 p-2">
+                    <flux:input icon="magnifying-glass" placeholder="Search visitor name" autocomplete="off" wire:model.live="search" />
+                </div>
                 <flux:table.columns>
                     <flux:table.column>Date</flux:table.column>
                     <flux:table.column>Name</flux:table.column>
