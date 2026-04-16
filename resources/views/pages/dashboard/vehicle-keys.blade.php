@@ -127,6 +127,7 @@ new class extends Component
     public function vehicleKeys()
     {
         return VehicleKey::with('borrowings')
+            ->where('vehicle_number', 'like', '%' . strtoupper($this->search) . '%')
             ->paginate(10);
     }
 

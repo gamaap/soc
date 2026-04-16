@@ -281,6 +281,11 @@ new class extends Component
 
                         <flux:separator variant="subtle" />
 
+                        <flux:heading size="lg">Reason For Delivery</flux:heading>
+                        <flux:text variant="strong">{{ $delivery->purpose ?? '-' }}</flux:text>
+
+                        <flux:separator variant="subtle" />
+
                         <flux:heading size="lg">Record Information</flux:heading>
 
                         <div class="grid grid-cols-2 gap-6">

@@ -34,6 +34,21 @@ new class extends Component
 
     public function loadEntries()
     {
+        $drafts = DraftVehiclePassEntry::whereNotNull('superapp_car_driver_request_id')
+            ->get()
+            ->keyBy('superapp_car_driver_request_id');
+
+        foreach ($drafts as $draft) {
+            $this->formData[$draft->superapp_car_driver_request_id] = [
+                'starting_km' => $draft->starting_km,
+                'security_departed_time' => $draft->leaving_time,
+                'ending_km' => $draft->ending_km,
+                'security_returned_time' => $draft->return_time,
+            ];
+            
+            $this->savedEntries[$draft->superapp_car_driver_request_id] = true;
+        }
+
         $this->draftEntries = SuperappCarDriverRequest::where('user_id', auth()->id())
             ->orderBy('created_at', 'desc')
             ->get();
@@ -50,6 +65,12 @@ new class extends Component
             'selectedStartTime' => 'required|date_format:H:i',
             'selectedEndTime' => 'required|date_format:H:i',
         ]);
+
+        $this->formData = [];
+        $this->editMode = [];
+        $this->savedEntries = [];
+
+        $this->loadDraftsForCurrentFilter();
 
         $startDateTime = Carbon::parse($this->selectedDate . ' ' . $this->selectedStartTime);
         $endDateTime = Carbon::parse($this->selectedDate . ' ' . $this->selectedEndTime);
@@ -92,13 +113,34 @@ new class extends Component
     private function initializeFormData()
     {
         foreach ($this->filteredEntries as $entry) {
-            $this->formData[$entry['id']] = [
-                'starting_km' => $entry['starting_km'] ?? '',
-                'security_departed_time' => $entry['security_departed_time'] ?? '',
-                'ending_km' => $entry['ending_km'] ?? '',
-                'security_returned_time' => $entry['security_returned_time'] ?? '',
+            if (! isset($this->formData[$entry['id']])) {
+                $this->formData[$entry['id']] = [
+                    'starting_km' => $entry['starting_km'] ?? '',
+                    'security_departed_time' => $entry['security_departed_time'] ?? '',
+                    'ending_km' => $entry['ending_km'] ?? '',
+                    'security_returned_time' => $entry['security_returned_time'] ?? '',
+                ];
+            }
+            $this->editMode[$entry['id']] = true;
+        }
+    }
+
+    private function loadDraftsForCurrentFilter()
+    {
+        $drafts = DraftVehiclePassEntry::where('date', $this->selectedDate)
+            ->whereNotNull('superapp_car_driver_request_id')
+            ->get()
+            ->keyBy('superapp_car_driver_request_id');
+
+        foreach ($drafts as $draft) {
+            $this->formData[$draft->superapp_car_driver_request_id] = [
+                'starting_km' => $draft->starting_km,
+                'security_departed_time' => $draft->leaving_time,
+                'ending_km' => $draft->ending_km,
+                'security_returned_time' => $draft->return_time,
             ];
-            $this->editMode[$entry['id']] = true; // Start in edit mode
+
+            $this->savedEntries[$draft->superapp_car_driver_request_id] = true;
         }
     }
 
@@ -110,6 +152,27 @@ new class extends Component
             "formData.{$entryId}.ending_km" => 'required|numeric|min:0',
             "formData.{$entryId}.security_returned_time" => 'required|date_format:H:i',
         ]);
+
+        $entry = SuperappCarDriverRequest::find($entryId);
+        if (! $entry) {
+            session()->flash('error', 'Entry Not Found.');
+            return;
+        }
+
+        DraftVehiclePassEntry::updateOrCreate(
+            ['superapp_car_driver_request_id' => $entryId],
+            [
+                'date' => $this->selectedDate,
+                'name' => $entry->drivers->map(fn ($driver) => $driver->driver->name ?? '-')->filter()->join(', '),
+                'license_plate' => $entry->car->car_vehicle_number ?? '',
+                'purpose' => $entry->purpose->code ?? $entry->purpose->purpose_other ?? '-',
+                'destination' => $entry->destinations->pluck('city')->filter(fn ($city) => $city !== '-')->join(', '),
+                'starting_km' => $this->formData[$entryId]['starting_km'],
+                'ending_km' => $this->formData[$entryId]['ending_km'],
+                'leaving_time' => $this->formData[$entryId]['security_departed_time'],
+                'return_time' => $this->formData[$entryId]['security_returned_time'],
+            ]
+        );
 
         $this->savedEntries[$entryId] = true;
         $this->editMode[$entryId] = false;
@@ -124,7 +187,7 @@ new class extends Component
 
     private function refreshFilteredEntries()
     {
-        if (!$this->selectedDate) {
+        if (! $this->selectedDate) {
             return;
         }
 
@@ -177,7 +240,7 @@ new class extends Component
             return;
         }
 
-        $user = SuperappUser::where('nik', '180702001')->first();
+        $user = SuperappUser::where('nik', '251016006')->first();
 
         if (! Hash::check($this->securityPin, $user->pin_code)) {
             $this->verificationError = 'Invalid head of security PIN.';
@@ -205,6 +268,8 @@ new class extends Component
                 'ending_km' => $data['ending_km'] ?: null,
                 'security_returned_time' => Carbon::parse($this->selectedDate . ' ' . $data['security_returned_time']),
             ]);
+
+            DraftVehiclePassEntry::where('superapp_car_driver_request_id', $entryId)->delete();
         }
 
         $this->savedEntries = [];
