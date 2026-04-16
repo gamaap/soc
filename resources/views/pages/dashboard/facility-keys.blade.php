@@ -70,7 +70,7 @@ new class extends Component
     {
         $this->validate([
             'borrower_name' => 'required|string|min:3',
-            'borrower_department' => 'required|string|min:3'
+            'borrower_department' => 'required|string'
         ]);
 
         KeyBorrowing::create([
@@ -92,7 +92,7 @@ new class extends Component
         $this->validate([
             'selectedBorrowingId' => 'required|integer',
             'returned_name' => 'required|string|min:3',
-            'returned_department' => 'required|string|min:3'
+            'returned_department' => 'required|string'
         ]);
 
         $borrowing = KeyBorrowing::find($this->selectedBorrowingId);
@@ -305,7 +305,7 @@ new class extends Component
                 <div class="autoComplete_wrapper" wire:ignore>
                     <flux:input wire:model="borrower_name" id="borrower-name-facility" label="Borrower Name" autocomplete="off" />
                 </div>
-                <flux:input wire:model="borrower_department" label="Department" readonly />
+                <flux:input wire:model="borrower_department" label="Department" />
                 <div class="flex">
                     <flux:spacer />
                     <flux:button type="submit" variant="primary" class="w-full">Record Borrow</flux:button>
@@ -364,7 +364,7 @@ new class extends Component
                 <div class="autoComplete_wrapper" wire:ignore>
                     <flux:input wire:model="returned_name" id="returned-name-facility" label="Return Person Name" autocomplete="off" />
                 </div>
-                <flux:input wire:model="returned_department" label="Department" readonly />
+                <flux:input wire:model="returned_department" label="Department" />
                 <div class="flex">
                     <flux:spacer />
                     <flux:button type="submit" variant="primary" class="w-full">Record Return</flux:button>
