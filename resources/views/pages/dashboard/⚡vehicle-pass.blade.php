@@ -208,7 +208,17 @@ new class extends Component
     #[Computed]
     public function employeePasses()
     {
-        return EmployeePass::orderByRaw('leaving_time IS NULL DESC, leaving_time ASC')->latest()->paginate(10);
+        return EmployeePass::where(function ($query) {
+            $query->whereDate('date', today())
+                  ->orWhere(function ($q) {
+                      $q->whereNull('leaving_time')
+                        ->whereDate('date', '<', today());
+                  });
+        })
+        ->orderByRaw('leaving_time IS NULL DESC')
+        ->orderBy('date', 'asc')
+        ->orderBy('entry_time', 'asc')
+        ->paginate(10);
     }
 
     #[Computed]
@@ -420,7 +430,18 @@ new class extends Component
                         <flux:table.cell>{{ $pass->name }}</flux:table.cell>
                         <flux:table.cell>{{ $pass->department }}</flux:table.cell>
                         <flux:table.cell>{{ $pass->license_plate }}</flux:table.cell>
-                        <flux:table.cell>{{ $pass->entry_time }}</flux:table.cell>
+                        <flux:table.cell>
+							<div class="flex flex-col">
+                                <span>
+                                    {{ $pass->entry_time }}
+                                </span>
+                                @if (! Carbon::parse($pass->date)->isToday())
+                                    <flux:badge color="red">
+                                        {{ Carbon::parse($pass->date)->format('d/m/Y') }}
+                                    </flux:badge>
+                                @endif
+                            </div>
+						</flux:table.cell>
                         <flux:table.cell>
                             @if (! $pass->leaving_time)
                             <flux:button wire:click="checkOut({{ $pass->id }})">Record Leaving</flux:button>
