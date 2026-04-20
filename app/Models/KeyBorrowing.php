@@ -34,4 +34,9 @@ class KeyBorrowing extends Model
     {
         return $value ? Carbon::parse($value)->format('H:i') : null;
     }
+
+    public function getFormattedDateAttribute()
+    {
+        return Carbon::parse($this->date)->format('d/m/Y');
+    }
 }

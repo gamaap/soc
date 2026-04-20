@@ -26,6 +26,7 @@ Route::middleware(['auth'])->group(function () {
     Route::livewire('dashboard/keys/vehicle', 'pages::dashboard.vehicle-keys')->name('dashboard.keys.vehicle');
     Route::livewire('dashboard/keys/facility', 'pages::dashboard.facility-keys')->name('dashboard.keys.facility');
     Route::livewire('dashboard/keys/box', 'pages::dashboard.box-keys')->name('dashboard.keys.box');
+    Route::livewire('dashboard/report', 'pages::dashboard.report')->name('dashboard.report');
 
     Route::livewire('dashboard/late/manual-entry', 'pages::dashboard.late-manual-entry')->name('dashboard.late-manual-entry');
     Route::livewire('dashboard/break/manual-entry', 'pages::dashboard.break-manual-entry')->name('dashboard.break-manual-entry');
@@ -38,6 +39,10 @@ Route::middleware(['auth'])->group(function () {
     Route::livewire('dashboard/keys/facility/manual-entry', 'pages::dashboard.facility-keys-manual-entry')->name('dashboard.keys.facility-manual-entry');
     Route::livewire('dashboard/keys/box/manual-entry', 'pages::dashboard.box-keys-manual-entry')->name('dashboard.keys.box-manual-entry');
 });
+
+// Route::get('/departments', function () {
+//     return SuperappDepartment::orderBy('name')->get();
+// });
 
 Route::get('/employees/api', function (Request $request) {
     $search = $request->query('search');

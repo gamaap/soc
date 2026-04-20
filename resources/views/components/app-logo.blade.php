@@ -9,10 +9,10 @@
         </x-slot>
     </flux:sidebar.brand>
 @else
-    <flux:link :href="route('dashboard.request')" variant="subtle">
+    <flux:link :href="route('dashboard.late')" variant="subtle">
         <div class="flex items-center space-x-4">
-            <div class="flex aspect-square size-8 items-center justify-center rounded-md bg-accent-content text-accent-foreground">
-                <flux:icon.building-office-2 color="blue" />
+            <div class="flex aspect-square size-8 items-center justify-center rounded-mdtext-accent-foreground">
+                <img src="{{ asset('img/e-windo.png') }}" alt="Ewindo Logo" width="100">
             </div>
 
             <div class="flex flex-col">

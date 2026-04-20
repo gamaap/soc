@@ -4,7 +4,7 @@
         <flux:subheading size="lg" class="mb-6">Track employee movement, visitors and facility access</flux:subheading>
     </div>
     
-    <flux:button icon="clipboard-document-list">View Reports</flux:button>
+    <flux:button icon="clipboard-document-list" href="{{ route('dashboard.report') }}" wire:navigate>View Report</flux:button>
 </div>
 
 <flux:separator variant="subtle" />
