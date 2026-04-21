@@ -116,11 +116,11 @@ return [
 
         'superapp' => [
             'driver' => 'pgsql',
-            'host' => '192.168.9.204',
+            'host' => 'localhost',
             'port' => '5432',
-            'database' => 'production_superapp',
-            'username' => 'production_superapp',
-            'password' => 'Sup3r4pP3w1ndo@68',
+            'database' => 'superapp',
+            'username' => 'postgres',
+            'password' => 'Saskiasf6!',
             'charset' => 'utf8',
             'prefix' => '',
             'schema' => 'public',

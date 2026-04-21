@@ -46,8 +46,10 @@ new class extends Component
             }])
             ->whereIn('status', ['Assigned', 'In Transit', 'Completed'])
             ->where('plant_id', 1)
-            ->where('date', Carbon::today()->toDateString())
-            ->orderByRaw('security_departed_time IS NULL DESC, security_departed_time ASC')
+            // ->where('date', Carbon::today()->toDateString())
+            ->orderBy('departure_time', 'asc')
+            ->orderByRaw('(security_departed_time IS NOT NULL AND security_returned_time IS NOT NULL) ASC')
+            ->orderBy('id', 'asc')
             ->paginate(10);
     }
 
@@ -148,12 +150,6 @@ new class extends Component
         $this->vehiclePassId = $id;
         $this->purposeCode = $pass->purpose->code ?? null;
 
-        // If not DLV, auto-record without modal
-        if ($this->purposeCode !== 'DLV') {
-            $this->recordLeaving();
-            return;
-        }
-
         Flux::modal('record-leaving')->show();
     }
 
@@ -162,12 +158,6 @@ new class extends Component
         $pass = SuperappCarDriverRequest::find($id);
         $this->vehiclePassId = $id;
         $this->purposeCode = $pass->purpose->code ?? null;
-
-        // If not DLV, auto-record without modal
-        if ($this->purposeCode !== 'DLV') {
-            $this->recordReturn();
-            return;
-        }
 
         Flux::modal('record-return')->show();
     }
@@ -179,12 +169,14 @@ new class extends Component
 
         if ($isDlv) {
             $this->validate([
-                'starting_km' => 'required|integer|min:0'
+                'starting_km' => 'integer|min:0'
             ]);
         }
 
+        $startingKm = $this->starting_km ?? null;
+
         $pass->update([
-            'starting_km' => $isDlv ? $this->starting_km : 0,
+            'starting_km' => $startingKm,
             'security_departed_time' => Carbon::now(),
         ]);
 
@@ -197,10 +189,7 @@ new class extends Component
 
         $this->reset('starting_km', 'vehiclePassId', 'purposeCode');
 
-        // Only close modal if DLV (modal was actually opened)
-        if ($isDlv) {
-            Flux::modal('record-leaving')->close();
-        }
+        Flux::modal('record-leaving')->close();
     }
 
     public function recordReturn()
@@ -208,14 +197,16 @@ new class extends Component
         $pass = SuperappCarDriverRequest::find($this->vehiclePassId);
         $isDlv = ($this->purposeCode === 'DLV');
 
-        if ($isDlv) {
+        if ($isDlv && $this->ending_km) {
             $this->validate([
-                'ending_km' => 'required|integer|gte:' . $pass->starting_km
+                'ending_km' => 'integer|gte:' . ($pass->starting_km ?? 0)
             ]);
         }
 
+        $endingKm = ($isDlv && $this->ending_km) ? $this->ending_km : null;
+
         $pass->update([
-            'ending_km' => $isDlv ? $this->ending_km : 0,
+            'ending_km' => $endingKm,
             'security_returned_time' => Carbon::now(),
         ]);
 
@@ -228,10 +219,7 @@ new class extends Component
 
         $this->reset('ending_km', 'vehiclePassId', 'purposeCode');
 
-        // Only close modal if DLV (modal was actually opened)
-        if ($isDlv) {
-            Flux::modal('record-return')->close();
-        }
+        Flux::modal('record-return')->close();
     }
 
     #[Computed]
@@ -303,7 +291,7 @@ new class extends Component
                         <flux:table.cell>
                             {!! $pass->destinations->pluck('city')->filter(fn($city) => $city !== '-')->join('<br>') !!}
                         </flux:table.cell>
-                        <flux:table.cell>{{ $pass->starting_km ?? '-' }}</flux:table.cell>
+                        <flux:table.cell>{{ $pass->starting_km ?: '-' }}</flux:table.cell>
                         <flux:table.cell>
                             @if($pass->security_departed_time)
                             {{ Carbon::parse($pass->security_departed_time)->format('d/m/Y') }}<br>
@@ -312,7 +300,7 @@ new class extends Component
                             -
                             @endif
                         </flux:table.cell>
-                        <flux:table.cell>{{ $pass->ending_km ?? '-' }}</flux:table.cell>
+                        <flux:table.cell>{{ $pass->ending_km ?: '-' }}</flux:table.cell>
                         <flux:table.cell>
                             @if($pass->security_returned_time)
                             {{ Carbon::parse($pass->security_returned_time)->format('d/m/Y') }}<br>
@@ -322,13 +310,13 @@ new class extends Component
                             @endif
                         </flux:table.cell>
                         <flux:table.cell>
-                            @if (! $pass->starting_km)
+                            @if (! $pass->security_departed_time)
                             <flux:button icon="log-in" variant="primary" size="sm"
                                 wire:click="openLeavingModal({{ $pass->id }})"
                                 wire:target="openLeavingModal({{ $pass->id }})">
                                 Record Leaving
                             </flux:button>
-                            @elseif ($pass->starting_km && ! $pass->ending_km)
+                            @elseif ($pass->security_departed_time && ! $pass->security_returned_time)
                             <flux:button icon="log-out" size="sm" wire:click="openReturnModal({{ $pass->id }})"
                                 wire:target="openReturnModal({{ $pass->id }})">
                                 Record Return
@@ -365,7 +353,7 @@ new class extends Component
                                 time.</flux:text>
                         </div>
                         <flux:input wire:model="starting_km" type="number" label="Starting KM"
-                            placeholder="Enter Starting KM" required />
+                            placeholder="Enter Starting KM (optional)" />
                         <div class="flex">
                             <flux:spacer />
                             <flux:button type="submit" variant="primary" class="w-full">Record Leaving</flux:button>
@@ -381,8 +369,7 @@ new class extends Component
                             <flux:text class="mt-8">Enter Ending KM for this vehicle and automatically record return
                                 time.</flux:text>
                         </div>
-                        <flux:input wire:model="ending_km" type="number" label="Ending KM" placeholder="Enter Ending KM"
-                            required />
+                        <flux:input wire:model="ending_km" type="number" label="Ending KM" placeholder="Enter Ending KM (optional)" />
                         <div class="flex">
                             <flux:spacer />
                             <flux:button type="submit" variant="primary" class="w-full">Record Return</flux:button>
