@@ -18,6 +18,7 @@ new class extends Component
     public $vehiclePassId;
     public $starting_km;
     public $ending_km;
+    public $purposeCode;
     public $name;
     public $department;
     public $license_plate;
@@ -143,28 +144,47 @@ new class extends Component
 
     public function openLeavingModal($id)
     {
+        $pass = SuperappCarDriverRequest::find($id);
         $this->vehiclePassId = $id;
+        $this->purposeCode = $pass->purpose->code ?? null;
+
+        // If not DLV, auto-record without modal
+        if ($this->purposeCode !== 'DLV') {
+            $this->recordLeaving();
+            return;
+        }
 
         Flux::modal('record-leaving')->show();
     }
 
     public function openReturnModal($id)
     {
+        $pass = SuperappCarDriverRequest::find($id);
         $this->vehiclePassId = $id;
+        $this->purposeCode = $pass->purpose->code ?? null;
+
+        // If not DLV, auto-record without modal
+        if ($this->purposeCode !== 'DLV') {
+            $this->recordReturn();
+            return;
+        }
 
         Flux::modal('record-return')->show();
     }
 
     public function recordLeaving()
     {
-        $this->validate([
-            'starting_km' => 'required|integer|min:0'
-        ]);
-
         $pass = SuperappCarDriverRequest::find($this->vehiclePassId);
+        $isDlv = ($this->purposeCode === 'DLV');
+
+        if ($isDlv) {
+            $this->validate([
+                'starting_km' => 'required|integer|min:0'
+            ]);
+        }
 
         $pass->update([
-            'starting_km' => $this->starting_km,
+            'starting_km' => $isDlv ? $this->starting_km : 0,
             'security_departed_time' => Carbon::now(),
         ]);
 
@@ -175,21 +195,27 @@ new class extends Component
             'color' => '#0D99FF'
         ]);
 
-        $this->reset('starting_km', 'vehiclePassId');
+        $this->reset('starting_km', 'vehiclePassId', 'purposeCode');
 
-        Flux::modal('record-leaving')->close();
+        // Only close modal if DLV (modal was actually opened)
+        if ($isDlv) {
+            Flux::modal('record-leaving')->close();
+        }
     }
 
     public function recordReturn()
     {
         $pass = SuperappCarDriverRequest::find($this->vehiclePassId);
+        $isDlv = ($this->purposeCode === 'DLV');
 
-        $this->validate([
-            'ending_km' => 'required|integer|gte:' . $pass->starting_km
-        ]);
+        if ($isDlv) {
+            $this->validate([
+                'ending_km' => 'required|integer|gte:' . $pass->starting_km
+            ]);
+        }
 
         $pass->update([
-            'ending_km' => $this->ending_km,
+            'ending_km' => $isDlv ? $this->ending_km : 0,
             'security_returned_time' => Carbon::now(),
         ]);
 
@@ -200,9 +226,12 @@ new class extends Component
             'color' => '#33FF00'
         ]);
 
-        $this->reset('ending_km', 'vehiclePassId');
+        $this->reset('ending_km', 'vehiclePassId', 'purposeCode');
 
-        Flux::modal('record-return')->close();
+        // Only close modal if DLV (modal was actually opened)
+        if ($isDlv) {
+            Flux::modal('record-return')->close();
+        }
     }
 
     #[Computed]

@@ -48,7 +48,6 @@ new class extends Component
         $this->month = now()->format('Y-m');
     }
 
-    #[Computed]
     public function records()
     {
         $query = match($this->category) {
@@ -65,7 +64,6 @@ new class extends Component
         return $query;
     }
 
-    #[Computed]
     public function columns()
     {
         return match($this->category) {
@@ -95,7 +93,7 @@ new class extends Component
         };
     }
 
-    private function applyCommonFilters($query)
+    private function applyCommonFilters($query, $applyDepartment = true)
     {
         if ($this->dateFrom) {
             $query->whereDate('date', '>=', $this->dateFrom);
@@ -109,8 +107,8 @@ new class extends Component
                   ->whereMonth('date', substr($this->month, 5, 2));
         }
 
-        if ($this->department) {
-            $query->where('department', 'like', '%' . $this->department . '%');
+        if ($applyDepartment && $this->department) {
+            $query->where('department', $this->department);
         }
 
         return $query;
@@ -118,85 +116,85 @@ new class extends Component
 
     private function getLateRecords()
     {
-        return Late::query()
-            ->when($this->category, function($q) {
-                return $this->applyCommonFilters($q);
-            })
-            ->orderBy('date', 'desc')
+        $query = Late::query();
+        $this->applyCommonFilters($query);
+        return $query->orderBy('date', 'desc')
             ->orderBy('actual_arrival', 'desc')
             ->get();
     }
 
     private function getBreakRecords()
     {
-        return Breaks::query()
-            ->when($this->category, function($q) {
-                return $this->applyCommonFilters($q);
-            })
-            ->orderBy('date', 'desc')
+        $query = Breaks::query();
+        $this->applyCommonFilters($query);
+        return $query->orderBy('date', 'desc')
             ->orderBy('actual_return', 'desc')
             ->get();
     }
 
     private function getNightShiftRecords()
     {
-        return NightShift::query()
-            ->when($this->category, function($q) {
-                return $this->applyCommonFilters($q);
-            })
-            ->orderBy('date', 'desc')
+        $query = NightShift::query();
+        $this->applyCommonFilters($query);
+        return $query->orderBy('date', 'desc')
             ->orderBy('check_in_time', 'desc')
             ->get();
     }
 
     private function getVisitorRecords()
     {
-        return Visitor::query()
-            ->when($this->category, function($q) {
-                return $this->applyCommonFilters($q);
-            })
-            ->orderBy('date', 'desc')
+        $query = Visitor::query();
+        $this->applyCommonFilters($query, false);
+        return $query->orderBy('date', 'desc')
             ->orderBy('entry_time', 'desc')
             ->get();
     }
 
     private function getDeliveryRecords()
     {
-        return Delivery::query()
-            ->when($this->category, function($q) {
-                return $this->applyCommonFilters($q);
-            })
-            ->orderBy('date', 'desc')
+        $query = Delivery::query();
+        $this->applyCommonFilters($query, false);
+        return $query->orderBy('date', 'desc')
             ->orderBy('entry_time', 'desc')
             ->get();
     }
 
     private function getVehiclePassRecords()
     {
-        return VehiclePass::query()
-            ->when($this->category, function($q) {
-                return $this->applyCommonFilters($q);
-            })
-            ->orderBy('date', 'desc')
+        $query = VehiclePass::query();
+        $this->applyCommonFilters($query, false);
+        return $query->orderBy('date', 'desc')
             ->orderBy('leaving_time', 'desc')
             ->get();
     }
 
     private function getKeyRecords()
     {
-        return KeyBorrowing::query()
-            ->with(['vehicleKey', 'facilityKey', 'boxKey'])
-            ->when($this->category, function($q) {
-                return $this->applyCommonFilters($q);
-            })
-            ->orderBy('date', 'desc')
+        $query = KeyBorrowing::query()
+            ->with(['vehicleKey', 'facilityKey', 'boxKey']);
+        
+        if ($this->dateFrom) {
+            $query->whereDate('date', '>=', $this->dateFrom);
+        }
+        if ($this->dateTo) {
+            $query->whereDate('date', '<=', $this->dateTo);
+        }
+        if ($this->month) {
+            $query->whereYear('date', substr($this->month, 0, 4))
+                  ->whereMonth('date', substr($this->month, 5, 2));
+        }
+        if ($this->department) {
+            $query->where('borrower_department', $this->department);
+        }
+        
+        return $query->orderBy('date', 'desc')
             ->orderBy('borrowed_at', 'desc')
             ->get();
     }
 
     public function export()
     {
-        $records = $this->records;
+        $records = $this->records();
         $category = $this->category;
         
         if ($records->isEmpty()) {
@@ -207,7 +205,7 @@ new class extends Component
         $filename = 'report_' . ($category ?: 'all') . '_' . now()->format('Y-m-d') . '.csv';
 
         // Dynamic headers based on category
-        $headers = $this->columns;
+        $headers = $this->columns();
 
         $callback = function() use ($records, $headers, $category) {
             $file = fopen('php://output', 'w');
@@ -312,7 +310,7 @@ new class extends Component
 
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div>
-            <flux:select wire:model="category" label="Category" placeholder="All Categories">
+            <flux:select wire:model.live="category" label="Category" placeholder="All Categories">
                 <flux:select.option value="">All Categories</flux:select.option>
                 <flux:select.option value="late">Late</flux:select.option>
                 <flux:select.option value="break">Break</flux:select.option>
@@ -325,25 +323,26 @@ new class extends Component
         </div>
 
         <div>
-            <flux:select wire:model="department" label="Department" placeholder="All Departments">
-                <flux:select.option value="">All Departments</flux:select.option>
-                @foreach($this->departments as $dept)
-                    <flux:select.option value="{{ $dept->name }}">{{ $dept->name }}</flux:select.option>
-                @endforeach
-            </flux:select>
+            <flux:input wire:model.live="month" type="month" label="Monthly View" />
         </div>
 
         <div>
-            <flux:input wire:model="month" type="month" label="Monthly View" />
+            <flux:input wire:model.live="dateFrom" type="date" label="From Date" />
         </div>
 
-        <div class="flex gap-2">
-            <div class="flex-1">
-                <flux:input wire:model="dateFrom" type="date" label="From Date" />
-            </div>
-            <div class="flex-1">
-                <flux:input wire:model="dateTo" type="date" label="To Date" />
-            </div>
+        <div>
+            <flux:input wire:model.live="dateTo" type="date" label="To Date" />
+        </div>
+
+        <div>
+            @if(in_array($category, ['late', 'break', 'night_shift', 'keys']))
+                <flux:select wire:model.live="department" label="Department" placeholder="All Departments">
+                    <flux:select.option value="">All Departments</flux:select.option>
+                    @foreach($this->departments as $dept)
+                        <flux:select.option value="{{ $dept->name }}">{{ $dept->name }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+            @endif
         </div>
     </div>
 
@@ -377,16 +376,16 @@ new class extends Component
         <flux:heading>Records Details</flux:heading>
         <flux:text class="mt-2 mb-4">Detailed information based on selected filters.</flux:text>
 
-        @if($this->category && count($this->columns) > 0)
+        @if($this->category && count($this->columns()) > 0)
         <flux:table>
             <flux:table.columns>
-                @foreach($this->columns as $col)
+                @foreach($this->columns() as $col)
                     <flux:table.column>{{ $col }}</flux:table.column>
                 @endforeach
             </flux:table.columns>
 
             <flux:table.rows>
-                @forelse($this->records as $record)
+                @forelse($this->records() as $record)
                     <flux:table.row>
                         @switch($this->category)
                             @case('late')
@@ -459,7 +458,7 @@ new class extends Component
                     </flux:table.row>
                 @empty
                     <flux:table.row>
-                        <flux:table.cell colspan="{{ count($this->columns) }}" class="text-center py-6">
+                        <flux:table.cell colspan="{{ count($this->columns()) }}" class="text-center py-6">
                             <flux:text class="text-zinc-400 italic">
                                 No records found for this category.
                             </flux:text>
