@@ -5,6 +5,7 @@ use Livewire\Component;
 use Livewire\Attributes\Computed;
 use App\Models\VehiclePass;
 use App\Models\EmployeePass;
+use App\Models\OtherPass;
 use App\Models\EmployeeMasterPass;
 use App\Models\SuperappCarDriverRequest;
 use App\Models\SuperappCarDriverRequestHistory;
@@ -23,6 +24,10 @@ new class extends Component
     public $department;
     public $license_plate;
     public $vehicle_type;
+    public $otherName;
+    public $otherDepartment;
+    public $otherLicensePlate;
+    public $otherPurpose;
     public $employeeMaster;
     public $departmentMaster;
     public $licensePlateMaster = '';
@@ -46,8 +51,7 @@ new class extends Component
             }])
             ->whereIn('status', ['Assigned', 'In Transit', 'Completed'])
             ->where('plant_id', 1)
-            ->where('date', Carbon::today()->toDateString())
-            ->orderBy('departure_time', 'asc')
+            // ->where('date', Carbon::today()->toDateString())
             ->orderByRaw('(security_departed_time IS NOT NULL AND security_returned_time IS NOT NULL) ASC')
             ->orderBy('id', 'asc')
             ->paginate(10);
@@ -71,6 +75,30 @@ new class extends Component
         ]);
 
         $this->reset(['name', 'department', 'license_plate', 'plateOptions']);
+
+        return redirect(request()->header('Referer'));
+    }
+
+    public function saveOtherPass()
+    {
+        $this->validate([
+            'otherName' => 'required|string|min:3',
+            'otherDepartment' => 'required|string|min:3',
+            'otherLicensePlate' => 'required|min:3',
+            'otherPurpose' => 'nullable|min:3|max:255',
+        ]);
+
+        OtherPass::create([
+            'date' => now()->toDateString(),
+            'name' => $this->otherName,
+            'department' => $this->otherDepartment,
+            'license_plate' => $this->otherLicensePlate,
+            'purpose' => $this->otherPurpose,
+            'leaving_time' => now()->format('H:i:s'),
+            'created_by' => auth()->id(),
+        ]);
+
+        $this->reset(['otherName', 'otherDepartment', 'otherLicensePlate', 'otherPurpose', 'plateOptions']);
 
         return redirect(request()->header('Referer'));
     }
@@ -140,6 +168,16 @@ new class extends Component
 
         $employee->update([
             'leaving_time' => now()->format('H:i:s'),
+            'updated_by' => auth()->id(),
+        ]);
+    }
+
+    public function checkIn($id)
+    {
+        $employee = OtherPass::findOrFail($id);
+
+        $employee->update([
+            'entry_time' => now()->format('H:i:s'),
             'updated_by' => auth()->id(),
         ]);
     }
@@ -235,6 +273,22 @@ new class extends Component
         ->orderByRaw('leaving_time IS NULL DESC')
         ->orderBy('date', 'asc')
         ->orderBy('entry_time', 'asc')
+        ->paginate(10);
+    }
+
+    #[Computed]
+    public function otherPasses()
+    {
+        return OtherPass::where(function ($query) {
+            $query->whereDate('date', today())
+                  ->orWhere(function ($q) {
+                      $q->whereNull('entry_time')
+                        ->whereDate('date', '<', today());
+                  });
+        })
+        ->orderByRaw('entry_time IS NULL DESC')
+        ->orderBy('date', 'asc')
+        ->orderBy('leaving_time', 'asc')
         ->paginate(10);
     }
 
@@ -379,7 +433,7 @@ new class extends Component
             </flux:modal>
         </div>
 
-        <div class="border border-accent p-6 rounded-2xl">
+        <div class="border border-accent p-6 rounded-2xl my-6">
             <div class="flex items-center justify-between">
                 <div>
                     <flux:heading>Employee Pass</flux:heading>
@@ -460,6 +514,92 @@ new class extends Component
                         <flux:table.cell colspan="6" class="text-center py-6">
                             <flux:text class="text-zinc-400 italic">
                                 No employee vehicle pass record available.
+                            </flux:text>
+                        </flux:table.cell>
+                    </flux:table.row>
+                    @endforelse
+                </flux:table.rows>
+            </flux:table>
+        </div>
+
+        <div class="border border-accent p-6 rounded-2xl">
+            <div class="flex items-center justify-between">
+                <div>
+                    <flux:heading>Other Pass</flux:heading>
+                    <flux:text class="mt-2">Track other vehicle passes.</flux:text>
+                </div>
+            </div>
+            <div class="my-6">
+                <form wire:submit.prevent="saveOtherPass" action="">
+                    <div class="grid grid-cols-12 gap-4 items-end">
+                        <div class="autoComplete_wrapper col-span-3" wire:ignore>
+                            <flux:input wire:model="otherName" id="employee-other-pass" :label="__('Name')"
+                                type="text" autocomplete="off" required autofocus />
+                        </div>
+                        <div class="col-span-3">
+                            <flux:input wire:model="otherDepartment" :label="__('Department')" type="text"
+                                autocomplete="off" />
+                        </div>
+                        <div class="col-span-3">
+                            @if (count($plateOptions) >= 1)
+                            <flux:label>Vehicle Number</flux:label>
+                            <flux:select wire:model="otherLicensePlate" class="mt-2">
+                                <flux:select.option value="">Select a vehicle</flux:select.option>
+                                @foreach ($plateOptions as $plate)
+                                <flux:select.option value="{{ $plate }}">{{ $plate }}</flux:select.option>
+                                @endforeach
+                            </flux:select>
+                            @else
+                            <div class="autoComplete_wrapper" wire:ignore>
+                                <flux:input id="license-other-vehicle-pass" wire:model="otherLicensePlate"
+                                    :label="__('Vehicle Number')" type="text" autocomplete="off" />
+                            </div>
+                            @endif
+                        </div>
+                        <div class="col-span-3">
+                            <flux:input wire:model="otherPurpose" :label="__('Purpose')" type="text"
+                                autocomplete="off" />
+                        </div>
+                        <div class="col-span-3">
+                            <flux:button variant="primary" class="w-full items-center justify-center" type="submit">
+                                Record Leaving Time
+                            </flux:button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <flux:separator variant="subtle" />
+            <flux:table class="mt-4" :paginate="$this->otherPasses">
+                <flux:table.columns>
+                    <flux:table.column>Employee Name</flux:table.column>
+                    <flux:table.column>Department</flux:table.column>
+                    <flux:table.column>Vehicle Number</flux:table.column>
+                    <flux:table.column>Purpose</flux:table.column>
+                    <flux:table.column>Leaving Time</flux:table.column>
+                    <flux:table.column>Entry Time</flux:table.column>
+                </flux:table.columns>
+
+                <flux:table.rows>
+                    @forelse ($this->otherPasses as $pass)
+                    <flux:table.row>
+                        <flux:table.cell>{{ $pass->name }}</flux:table.cell>
+                        <flux:table.cell>{{ $pass->department }}</flux:table.cell>
+                        <flux:table.cell>{{ $pass->license_plate }}</flux:table.cell>
+                        <flux:table.cell>{{ $pass->purpose }}</flux:table.cell>
+                        <flux:table.cell>{{ $pass->leaving_time }}</flux:table.cell>
+                        <flux:table.cell>
+                            @if (! $pass->entry_time)
+                                <flux:button wire:click="checkIn({{ $pass->id }})">Record Return</flux:button>
+                            @else
+                                {{ $pass->entry_time }}
+                            @endif
+                        </flux:table.cell>
+                    </flux:table.row>
+                    @empty
+                    <flux:table.row>
+                        <flux:table.cell colspan="6" class="text-center py-6">
+                            <flux:text class="text-zinc-400 italic">
+                                No other vehicle pass record available.
                             </flux:text>
                         </flux:table.cell>
                     </flux:table.row>
@@ -688,6 +828,106 @@ new class extends Component
 
                     if (selection.license_plates && selection.license_plates.length === 1) {
                         $wire.set('license_plate', selection.license_plates[0]);
+                    }
+                }
+            }
+        }
+    });
+    
+    if (window.autoCompleteJS4) {
+        window.autoCompleteJS4.destroy();
+    }
+    window.autoCompleteJS4 = new autoComplete({
+        selector: "#employee-other-pass",
+        data: {
+            src: async (query) => {
+                try {
+                    const source = await fetch(`/employee-master/api?search=${encodeURIComponent(query)}`);
+                    const data = await source.json();
+
+                    return data;
+                } catch (error) {
+                    return error;
+                }
+            },
+            keys: ["employee_name"],
+        },
+        resultsList: {
+            maxResults: 50
+        },
+        resultItem: {
+            highlight: true
+        },
+        events: {
+            input: {
+                selection: (event) => {
+                    const selection = event.detail.selection.value;
+
+                    window.autoCompleteJS4.input.value = selection.employee_name;
+                    $wire.set('otherName', selection.employee_name);
+                    $wire.set('otherDepartment', selection.department);
+
+                    const plates = selection.license_plates ?? [];
+                    $wire.set('plateOptions', plates);
+
+                    if (plates.length === 1) {
+                        $wire.set('licensePlateMaster', plates[0]);
+                    } else {
+                        $wire.set('licensePlateMaster', '');
+                    }
+
+                    $wire.call('loadEmployeeMaster', selection.employee_name);
+
+                }
+            }
+        }
+    });
+
+    if (window.autoCompleteJS5) {
+        window.autoCompleteJS5.destroy();
+    }
+    window.autoCompleteJS5 = new autoComplete({
+        selector: "#license-other-vehicle-pass",
+        threshold: 1,
+        data: {
+            src: async (query) => {
+                try {
+                    const source = await fetch(`/employee-master/api?search=${encodeURIComponent(query)}`);
+                    const data = await source.json();
+
+                    return data.flatMap((item) => {
+                        return (item.license_plates || []).map((plate) => ({
+                            employee_name: item.employee_name,
+                            department: item.department,
+                            license_plate: plate,
+                            license_plates: item.license_plates || []
+                        }));
+                    });
+                } catch (error) {
+                    return error;
+                }
+            },
+            keys: ["license_plate"],
+        },
+        resultsList: {
+            maxResults: 50
+        },
+        resultItem: {
+            highlight: true
+        },
+        events: {
+            input: {
+                selection: (event) => {
+                    const selection = event.detail.selection.value;
+
+                    window.autoCompleteJS5.input.value = selection.license_plate;
+                    $wire.set('otherLicensePlate', selection.license_plate);
+                    $wire.set('otherName', selection.employee_name);
+                    $wire.set('otherDepartment', selection.department);
+                    $wire.set('plateOptions', selection.license_plates || []);
+
+                    if (selection.license_plates && selection.license_plates.length === 1) {
+                        $wire.set('otherLicensePlate', selection.license_plates[0]);
                     }
                 }
             }

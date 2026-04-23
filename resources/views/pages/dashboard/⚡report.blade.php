@@ -11,6 +11,7 @@ use App\Models\Delivery;
 use App\Models\VehiclePass;
 use App\Models\KeyBorrowing;
 use App\Models\SuperappDepartment;
+use Flux\Flux;
 use Livewire\WithPagination;
 
 new class extends Component
@@ -22,6 +23,8 @@ new class extends Component
     public $month = '';
     public $dateFrom = '';
     public $dateTo = '';
+    public $visitorId = null;
+    public $deliveryId = null;
 
     #[Computed]
     public function categoryCounts()
@@ -91,6 +94,45 @@ new class extends Component
             'keys' => KeyBorrowing::count() > 0,
             default => false,
         };
+    }
+
+    public function hasActionColumn(): bool
+    {
+        return in_array($this->category, ['visitor', 'delivery']);
+    }
+
+    #[Computed]
+    public function visitor()
+    {
+        if (! $this->visitorId) {
+            return null;
+        }
+
+        return Visitor::find($this->visitorId);
+    }
+
+    #[Computed]
+    public function delivery()
+    {
+        if (! $this->deliveryId) {
+            return null;
+        }
+
+        return Delivery::with('items')->find($this->deliveryId);
+    }
+
+    public function showVisitor($id)
+    {
+        $this->visitorId = $id;
+
+        Flux::modal('view-visitor')->show();
+    }
+
+    public function showDelivery($id)
+    {
+        $this->deliveryId = $id;
+
+        Flux::modal('view-delivery')->show();
     }
 
     private function applyCommonFilters($query, $applyDepartment = true)
@@ -382,6 +424,10 @@ new class extends Component
                 @foreach($this->columns() as $col)
                     <flux:table.column>{{ $col }}</flux:table.column>
                 @endforeach
+
+                @if($this->hasActionColumn())
+                    <flux:table.column></flux:table.column>
+                @endif
             </flux:table.columns>
 
             <flux:table.rows>
@@ -421,6 +467,17 @@ new class extends Component
                                 <flux:table.cell>{{ $record->card_number ?? '-' }}</flux:table.cell>
                                 <flux:table.cell>{{ $record->entry_time }}</flux:table.cell>
                                 <flux:table.cell>{{ $record->exit_time ?? '-' }}</flux:table.cell>
+                                <flux:table.cell>
+                                    <flux:button
+                                        icon="eye"
+                                        variant="ghost"
+                                        size="sm"
+                                        wire:click="showVisitor({{ $record->id }})"
+                                        wire:target="showVisitor({{ $record->id }})"
+                                    >
+                                        View
+                                    </flux:button>
+                                </flux:table.cell>
                                 @break
 
                             @case('delivery')
@@ -432,6 +489,17 @@ new class extends Component
                                 <flux:table.cell>{{ $record->card_number ?? '-' }}</flux:table.cell>
                                 <flux:table.cell>{{ $record->entry_time }}</flux:table.cell>
                                 <flux:table.cell>{{ $record->exit_time ?? '-' }}</flux:table.cell>
+                                <flux:table.cell>
+                                    <flux:button
+                                        icon="eye"
+                                        variant="ghost"
+                                        size="sm"
+                                        wire:click="showDelivery({{ $record->id }})"
+                                        wire:target="showDelivery({{ $record->id }})"
+                                    >
+                                        View
+                                    </flux:button>
+                                </flux:table.cell>
                                 @break
 
                             @case('vehicle_pass')
@@ -458,7 +526,7 @@ new class extends Component
                     </flux:table.row>
                 @empty
                     <flux:table.row>
-                        <flux:table.cell colspan="{{ count($this->columns()) }}" class="text-center py-6">
+                        <flux:table.cell colspan="{{ count($this->columns()) + ($this->hasActionColumn() ? 1 : 0) }}" class="text-center py-6">
                             <flux:text class="text-zinc-400 italic">
                                 No records found for this category.
                             </flux:text>
@@ -467,6 +535,160 @@ new class extends Component
                 @endforelse
             </flux:table.rows>
         </flux:table>
+
+            <flux:modal name="view-visitor" class="md:w-200">
+                <div class="space-y-6">
+                    <div>
+                        <flux:heading size="lg">Visitor Details</flux:heading>
+                        <flux:text class="mt-2">Complete information about the visitor</flux:text>
+                    </div>
+
+                    @if ($this->visitor)
+                        <div class="grid grid-cols-2 gap-6">
+                            <div>
+                                <flux:heading>Visitor Name</flux:heading>
+                                <flux:text class="mt-2" variant="strong">{{ $this->visitor->name }}</flux:text>
+                            </div>
+                            <div>
+                                <flux:heading>Company</flux:heading>
+                                <flux:text class="mt-2" variant="strong">{{ $this->visitor->company ?? '-' }}</flux:text>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-6">
+                            <div>
+                                <flux:heading>Visiting Person</flux:heading>
+                                <flux:text class="mt-2" variant="strong">{{ $this->visitor->visiting }}</flux:text>
+                            </div>
+                            <div>
+                                <flux:heading>License Plate</flux:heading>
+                                <flux:text class="mt-2" variant="strong">{{ $this->visitor->license_plate ?? '-' }}</flux:text>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-6">
+                            <div>
+                                <flux:heading>Entry Time</flux:heading>
+                                <flux:text class="mt-2" variant="strong">{{ $this->visitor->entry_time }}</flux:text>
+                            </div>
+                            <div>
+                                <flux:heading>Card Number</flux:heading>
+                                <flux:text class="mt-2" variant="strong">{{ $this->visitor->card_number ?? '-' }}</flux:text>
+                            </div>
+                            <div>
+                                <flux:heading>Exit Time</flux:heading>
+                                @if ($this->visitor->exit_time)
+                                    <flux:text class="mt-2" variant="strong">{{ $this->visitor->exit_time }}</flux:text>
+                                @else
+                                    <flux:badge color="red" size="sm" class="my-2">Exit Not Recorded</flux:badge>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-6">
+                            <div>
+                                <flux:heading>Visit Date</flux:heading>
+                                <flux:text class="mt-2" variant="strong">{{ $this->visitor->formatted_date }}</flux:text>
+                            </div>
+                            <div>
+                                <flux:heading>Reason for Visit</flux:heading>
+                                <flux:text class="mt-2" variant="strong">{{ $this->visitor->purpose }}</flux:text>
+                            </div>
+                        </div>
+
+                        <flux:separator variant="subtle" />
+
+                        <flux:heading size="lg">Record Information</flux:heading>
+
+                        <div class="grid grid-cols-2 gap-6">
+                            <div>
+                                <flux:heading>Recorded By</flux:heading>
+                                <flux:text class="mt-2" variant="strong">{{ auth()->user()->name }}</flux:text>
+                            </div>
+                            <div>
+                                <flux:heading>Recorded At</flux:heading>
+                                <flux:text class="mt-2" variant="strong">{{ $this->visitor->created_at }}</flux:text>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            </flux:modal>
+
+            <flux:modal name="view-delivery" class="md:w-200">
+                <div class="space-y-6">
+                    <div>
+                        <flux:heading size="lg">Delivery Details</flux:heading>
+                        <flux:text class="mt-2">Complete information about the delivery</flux:text>
+                    </div>
+
+                    @if ($this->delivery)
+                        <div class="grid grid-cols-2 gap-6">
+                            <div>
+                                <flux:heading>Driver Name</flux:heading>
+                                <flux:text class="mt-2" variant="strong">{{ $this->delivery->name }}</flux:text>
+                            </div>
+                            <div>
+                                <flux:heading>Company</flux:heading>
+                                <flux:text class="mt-2" variant="strong">{{ $this->delivery->company ?? '-' }}</flux:text>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-6">
+                            <div>
+                                <flux:heading>Visiting Person</flux:heading>
+                                <flux:text class="mt-2" variant="strong">{{ $this->delivery->visiting }}</flux:text>
+                            </div>
+                            <div>
+                                <flux:heading>License Plate</flux:heading>
+                                <flux:text class="mt-2" variant="strong">{{ $this->delivery->license_plate ?? '-' }}</flux:text>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-6">
+                            <div>
+                                <flux:heading>Entry Time</flux:heading>
+                                <flux:text class="mt-2" variant="strong">{{ $this->delivery->entry_time }}</flux:text>
+                            </div>
+                            <div>
+                                <flux:heading>Card Number</flux:heading>
+                                <flux:text class="mt-2" variant="strong">{{ $this->delivery->card_number ?? '-' }}</flux:text>
+                            </div>
+                            <div>
+                                <flux:heading>Exit Time</flux:heading>
+                                @if ($this->delivery->exit_time)
+                                    <flux:text class="mt-2" variant="strong">{{ $this->delivery->exit_time }}</flux:text>
+                                @else
+                                    <flux:badge color="red" size="sm" class="my-2">Exit Not Recorded</flux:badge>
+                                @endif
+                            </div>
+                        </div>
+
+                        <flux:separator variant="subtle" />
+                        <flux:heading size="lg">Items & Quantity</flux:heading>
+
+                        @foreach ($this->delivery->items as $item)
+                            <div class="flex items-center justify-between bg-gray-400/5 rounded-xl p-2 my-2">
+                                <flux:text variant="strong">{{ $item->item_name }}</flux:text>
+                                <flux:text variant="strong">{{ $item->quantity }} {{ $item->uom }}</flux:text>
+                            </div>
+                        @endforeach
+
+                        <flux:separator variant="subtle" />
+                        <flux:heading size="lg">Reason For Delivery</flux:heading>
+                        <flux:text variant="strong">{{ $this->delivery->purpose ?? '-' }}</flux:text>
+
+                        <flux:separator variant="subtle" />
+                        <flux:heading size="lg">Record Information</flux:heading>
+
+                        <div class="grid grid-cols-2 gap-6">
+                            <div>
+                                <flux:heading>Recorded By</flux:heading>
+                                <flux:text class="mt-2" variant="strong">{{ auth()->user()->name }}</flux:text>
+                            </div>
+                            <div>
+                                <flux:heading>Recorded At</flux:heading>
+                                <flux:text class="mt-2" variant="strong">{{ $this->delivery->created_at }}</flux:text>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            </flux:modal>
+
         @else
             <div class="text-center py-12">
                 <flux:text class="text-zinc-400 italic">

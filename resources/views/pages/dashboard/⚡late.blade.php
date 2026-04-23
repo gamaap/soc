@@ -6,6 +6,7 @@ use App\Models\Late;
 use Livewire\Attributes\Computed;
 use Illuminate\Support\Facades\DB;
 use App\Models\SuperappDepartment;
+use App\Models\SuperappDivision;
 use Livewire\WithPagination;
 
 new class extends Component
@@ -15,6 +16,7 @@ new class extends Component
     public $card_number = '';
     public $employee = '';
     public $department = '';
+    public $division = '';
     public $photo = '';
     public $photoLoading = false;
     public $search = '';
@@ -29,6 +31,7 @@ new class extends Component
         if (empty($this->card_number)) {
             $this->employee = '';
             $this->department = '';
+            $this->division = '';
             $this->photo = '';
             $this->photoLoading = false;
             return;
@@ -42,10 +45,20 @@ new class extends Component
             $this->employee = $rfidEmployee->name;
             $department = SuperappDepartment::find($rfidEmployee->department_id);
             $this->department = $department ? $department->name : '';
+            
+            // Try to get division from RFID if available, otherwise leave empty
+            if (isset($rfidEmployee->division_id)) {
+                $division = SuperappDivision::find($rfidEmployee->division_id);
+                $this->division = $division ? $division->name : '';
+            } else {
+                $this->division = '';
+            }
+            
             $this->photo = $rfidEmployee->photo ?: '';
         } else {
             $this->employee = '';
             $this->department = '';
+            $this->division = '';
             $this->photo = '';
 
             session()->flash('error', 'Employee not found for this card number.');
@@ -58,7 +71,8 @@ new class extends Component
     {
         $validated = $this->validate([
             'employee' => 'required|string|min:3|max:255',
-            'department' => 'nullable|string|min:3'
+            'department' => 'nullable|string|min:3',
+            'division' => 'nullable|string|min:3'
         ]);
 
         $arrival = Carbon::now();
@@ -73,6 +87,7 @@ new class extends Component
         Late::create([
             'name' => $this->employee,
             'department' => $this->department,
+            'division' => $this->division,
             'actual_arrival' => $arrival->format('H:i:s'),
             'minutes_late' => $minutesLate,
             'date' => $arrival->toDateString(),
@@ -80,7 +95,7 @@ new class extends Component
             'created_by' => Auth::id()
         ]);
 
-        $this->reset(['card_number', 'employee', 'department', 'photo']);
+        $this->reset(['card_number', 'employee', 'department', 'division', 'photo']);
     }
 
     #[Computed]
@@ -134,19 +149,24 @@ new class extends Component
                         <div class="col-span-12">
                             <flux:input id="scan-card-late" wire:model.live="card_number" :label="__('System ID')" type="text" placeholder="SCAN HERE" autocomplete="off" autofocus />
                         </div>
-                        <div class="col-span-4">
+                        <div class="col-span-3">
                             <div class="autoComplete_wrapper" wire:ignore>
                                 <flux:input id="employee-name-late" wire:model="employee" :label="__('Employee')" type="text" autocomplete="off" />
                             </div>
                         </div>
-                        <div class="col-span-4">
+                        <div class="col-span-3">
                             <div class="autoComplete_wrapper" wire:ignore>
                                 <flux:input id="department" wire:model="department" :label="__('Department')" type="text" autocomplete="off" />
                             </div>
                         </div>
-                        <div class="col-span-4">
+                        <div class="col-span-3">
+                            <div class="autoComplete_wrapper" wire:ignore>
+                                <flux:input id="division" wire:model="division" :label="__('Division')" type="text" autocomplete="off" />
+                            </div>
+                        </div>
+                        <div class="col-span-3">
                             <flux:button variant="primary" class="w-full" type="submit" :disabled="$photoLoading">
-                                Record Arrival Time
+                                Record Time
                             </flux:button>
                         </div>
                     </form>
@@ -171,6 +191,7 @@ new class extends Component
                     <flux:table.column>Date</flux:table.column>
                     <flux:table.column>Employee</flux:table.column>
                     <flux:table.column>Department</flux:table.column>
+                    <flux:table.column>Division</flux:table.column>
                     {{-- <flux:table.column>Standard Time</flux:table.column> --}}
                     <flux:table.column>Actual Arrival</flux:table.column>
                     {{-- <flux:table.column>Minutes Late</flux:table.column> --}}
@@ -185,6 +206,7 @@ new class extends Component
                             <flux:table.cell>{{ $late->formatted_date }}</flux:table.cell>
                             <flux:table.cell>{{ $late->name }}</flux:table.cell>
                             <flux:table.cell>{{ $late->department }}</flux:table.cell>
+                            <flux:table.cell>{{ $late->division ?? '-' }}</flux:table.cell>
                             {{-- <flux:table.cell>08.00</flux:table.cell> --}}
                             <flux:table.cell>{{ $late->formatted_time }}</flux:table.cell>
                             {{-- <flux:table.cell>
@@ -193,7 +215,7 @@ new class extends Component
                         </flux:table.row>
                     @empty
                         <flux:table.row>
-                            <flux:table.cell colspan="6" class="text-center py-6">
+                            <flux:table.cell colspan="7" class="text-center py-6">
                                 <flux:text class="text-zinc-400 italic">
                                     No late arrival record available.
                                 </flux:text>
@@ -247,6 +269,7 @@ new class extends Component
                     autoCompleteJS.input.value = selection.fullname;
                     $wire.set('employee', selection.fullname);
                     $wire.set('department', selection.department?.name ?? '');
+                    $wire.set('division', selection.division?.name ?? '');
 
                     // Show loader until the image loads/fails
                     $wire.set('photoLoading', true);
@@ -293,6 +316,38 @@ new class extends Component
                     const selection = event.detail.selection.value;
 
                     $wire.set('department', selection.name);
+                }
+            }
+        }
+    });
+
+    const division = new autoComplete({
+        selector: "#division",
+        data: {
+            src: async (query) => {
+                try {
+                    const source = await fetch(`/divisions/api?search=${encodeURIComponent(query)}`);
+                    const data = await source.json();
+
+                    return data;
+                } catch (error) {
+                    return error;
+                }
+            },
+            keys: ["name"],
+        },
+        resultsList: {
+            maxResults: 50
+        },
+        resultItem: {
+            highlight: true
+        },
+        events: {
+            input: {
+                selection: (event) => {
+                    const selection = event.detail.selection.value;
+
+                    $wire.set('division', selection.name);
                 }
             }
         }
