@@ -89,9 +89,7 @@ new class extends Component
 
     public function submitAll()
     {
-        $drafts = DraftBreakEntry::where('user_id', auth()->id())
-            ->whereDate('date', $this->selectedDate)
-            ->get();
+        $drafts = DraftBreakEntry::where('user_id', auth()->id())->get();
 
         foreach ($drafts as $draft) {
             Breaks::create([

@@ -87,9 +87,7 @@ new class extends Component
 
     public function submitAll()
     {
-        $drafts = DraftNightShiftEntry::where('user_id', auth()->id())
-            ->whereDate('date', $this->selectedDate)
-            ->get();
+        $drafts = DraftNightShiftEntry::where('user_id', auth()->id())->get();
 
         foreach ($drafts as $draft) {
             NightShift::create([

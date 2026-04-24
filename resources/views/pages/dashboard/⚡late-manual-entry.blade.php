@@ -95,9 +95,7 @@ new class extends Component
 
     public function submitAll()
     {
-        $drafts = DraftLateEntry::where('user_id', auth()->id())
-            ->whereDate('date', $this->selectedDate)
-            ->get();
+        $drafts = DraftLateEntry::where('user_id', auth()->id())->get();
 
         foreach ($drafts as $draft) {
             Late::create([
