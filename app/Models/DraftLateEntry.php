@@ -12,6 +12,7 @@ class DraftLateEntry extends Model
         'date',
         'name',
         'department',
+        'division',
         'actual_arrival',
         'minutes_late',
         'photo',

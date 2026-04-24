@@ -11,6 +11,7 @@ class DraftNightShiftEntry extends Model
         'date',
         'name',
         'department',
+        'division',
         'check_in_time',
         'check_out_time',
         'photo',

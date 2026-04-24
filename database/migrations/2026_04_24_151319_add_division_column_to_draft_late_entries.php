@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('draft_late_entries', function (Blueprint $table) {
-            //
+            $table->string('division')->nullable()->after('department');
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('draft_late_entries', function (Blueprint $table) {
-            $table->string('division')->nullable()->after('department');
+            //
         });
     }
 };
