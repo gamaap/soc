@@ -51,7 +51,7 @@ new class extends Component
             }])
             ->whereIn('status', ['Assigned', 'In Transit', 'Completed'])
             ->where('plant_id', 1)
-            // ->where('date', Carbon::today()->toDateString())
+            ->where('date', Carbon::today()->toDateString())
             ->orderByRaw('(security_departed_time IS NOT NULL AND security_returned_time IS NOT NULL) ASC')
             ->orderBy('id', 'asc')
             ->paginate(10);
