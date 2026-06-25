@@ -358,6 +358,8 @@ new class extends Component
                             <flux:select.option>Liters</flux:select.option>
                             <flux:select.option>Coils</flux:select.option>
                             <flux:select.option>Carries</flux:select.option>
+                            <flux:select.option>Box</flux:select.option>
+                            <flux:select.option>Bucket</flux:select.option>
                         </flux:select>
                     </div>
                     @if($index > 0)
