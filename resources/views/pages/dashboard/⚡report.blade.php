@@ -15,6 +15,7 @@ use App\Models\EmployeePass;
 use App\Models\OtherPass;
 use Flux\Flux;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Str;
 use Livewire\WithPagination;
 
 new class extends Component
@@ -26,6 +27,7 @@ new class extends Component
     public $month = '';
     public $dateFrom = '';
     public $dateTo = '';
+    public $search = '';
     public $visitorId = null;
     public $deliveryId = null;
 
@@ -85,6 +87,11 @@ new class extends Component
     }
 
     public function updatedDepartment(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedSearch(): void
     {
         $this->resetPage();
     }
@@ -223,10 +230,26 @@ new class extends Component
         return $query;
     }
 
+    private function applySearchFilter($query, array $fields)
+    {
+        if (! $this->search) {
+            return $query;
+        }
+
+        $query->where(function ($q) use ($fields) {
+            foreach ($fields as $field) {
+                $q->orWhere($field, 'like', '%' . $this->search . '%');
+            }
+        });
+
+        return $query;
+    }
+
     private function getLateRecords(bool $paginate = false)
     {
         $query = Late::query();
         $this->applyCommonFilters($query);
+        $this->applySearchFilter($query, ['name', 'department']);
         $query->orderBy('date', 'desc')->orderBy('actual_arrival', 'desc');
 
         return $paginate ? $query->paginate(15) : $query->get();
@@ -236,6 +259,7 @@ new class extends Component
     {
         $query = Breaks::query();
         $this->applyCommonFilters($query);
+        $this->applySearchFilter($query, ['name', 'department']);
         $query->orderBy('date', 'desc')->orderBy('actual_return', 'desc');
 
         return $paginate ? $query->paginate(15) : $query->get();
@@ -245,6 +269,7 @@ new class extends Component
     {
         $query = NightShift::query();
         $this->applyCommonFilters($query);
+        $this->applySearchFilter($query, ['name', 'department']);
         $query->orderBy('date', 'desc')->orderBy('check_in_time', 'desc');
 
         return $paginate ? $query->paginate(15) : $query->get();
@@ -254,6 +279,7 @@ new class extends Component
     {
         $query = Visitor::query();
         $this->applyCommonFilters($query, false);
+        $this->applySearchFilter($query, ['name', 'company', 'visiting', 'license_plate', 'card_number']);
         $query->orderBy('date', 'desc')->orderBy('entry_time', 'desc');
 
         return $paginate ? $query->paginate(15) : $query->get();
@@ -263,6 +289,7 @@ new class extends Component
     {
         $query = Delivery::query();
         $this->applyCommonFilters($query, false);
+        $this->applySearchFilter($query, ['name', 'company', 'visiting', 'license_plate', 'card_number']);
         $query->orderBy('date', 'desc')->orderBy('entry_time', 'desc');
 
         return $paginate ? $query->paginate(15) : $query->get();
@@ -275,6 +302,17 @@ new class extends Component
             ->merge($this->getOtherVehiclePassRecords())
             ->sortByDesc(fn ($record) => $record->date . ' ' . ($record->leaving_time ?? '00:00'))
             ->values();
+
+        if ($this->search) {
+            $search = Str::lower($this->search);
+
+            $records = $records->filter(function ($record) use ($search) {
+                return Str::contains(Str::lower($record->name ?? ''), $search)
+                    || Str::contains(Str::lower($record->license_plate ?? ''), $search)
+                    || Str::contains(Str::lower($record->purpose ?? ''), $search)
+                    || Str::contains(Str::lower($record->destination ?? ''), $search);
+            })->values();
+        }
 
         return $paginate ? $this->paginateCollection($records, 15) : $records;
     }
@@ -380,6 +418,17 @@ new class extends Component
         }
         if ($this->department) {
             $query->where('borrower_department', $this->department);
+        }
+
+        if ($this->search) {
+            $search = $this->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('borrower_name', 'like', "%{$search}%")
+                  ->orWhere('borrower_department', 'like', "%{$search}%")
+                  ->orWhereHas('vehicleKey', fn ($r) => $r->where('vehicle_number', 'like', "%{$search}%"))
+                  ->orWhereHas('facilityKey', fn ($r) => $r->where('key_name', 'like', "%{$search}%"))
+                  ->orWhereHas('boxKey', fn ($r) => $r->where('vehicle_number', 'like', "%{$search}%"));
+            });
         }
 
         $query->orderBy('date', 'desc')->orderBy('borrowed_at', 'desc');
@@ -574,6 +623,9 @@ new class extends Component
 
         @if($this->category && count($this->columns()) > 0)
         <flux:table :paginate="$this->paginatedRecords">
+            <div class="my-3 p-2">
+                <flux:input icon="magnifying-glass" placeholder="Search records..." autocomplete="off" wire:model.live.debounce.300ms="search" />
+            </div>
             <flux:table.columns>
                 @foreach($this->columns() as $col)
                     <flux:table.column>{{ $col }}</flux:table.column>
