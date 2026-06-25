@@ -14,6 +14,7 @@ use App\Models\SuperappCarDriverRequest;
 use App\Models\EmployeePass;
 use App\Models\OtherPass;
 use Flux\Flux;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Livewire\WithPagination;
 
 new class extends Component
@@ -63,6 +64,31 @@ new class extends Component
         $this->month = now()->format('Y-m');
     }
 
+    public function updatedCategory(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedMonth(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDateFrom(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDateTo(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDepartment(): void
+    {
+        $this->resetPage();
+    }
+
     public function records()
     {
         $query = match($this->category) {
@@ -77,6 +103,35 @@ new class extends Component
         };
 
         return $query;
+    }
+
+    #[Computed]
+    public function paginatedRecords()
+    {
+        return match($this->category) {
+            'late' => $this->getLateRecords(paginate: true),
+            'break' => $this->getBreakRecords(paginate: true),
+            'night_shift' => $this->getNightShiftRecords(paginate: true),
+            'visitor' => $this->getVisitorRecords(paginate: true),
+            'delivery' => $this->getDeliveryRecords(paginate: true),
+            'vehicle_pass' => $this->getVehiclePassRecords(paginate: true),
+            'keys' => $this->getKeyRecords(paginate: true),
+            default => null,
+        };
+    }
+
+    private function paginateCollection($items, int $perPage = 15)
+    {
+        $items = $items->values();
+        $page = $this->getPage();
+
+        return new LengthAwarePaginator(
+            $items->forPage($page, $perPage)->values(),
+            $items->count(),
+            $perPage,
+            $page,
+            ['pageName' => 'page']
+        );
     }
 
     public function columns()
@@ -168,58 +223,60 @@ new class extends Component
         return $query;
     }
 
-    private function getLateRecords()
+    private function getLateRecords(bool $paginate = false)
     {
         $query = Late::query();
         $this->applyCommonFilters($query);
-        return $query->orderBy('date', 'desc')
-            ->orderBy('actual_arrival', 'desc')
-            ->get();
+        $query->orderBy('date', 'desc')->orderBy('actual_arrival', 'desc');
+
+        return $paginate ? $query->paginate(15) : $query->get();
     }
 
-    private function getBreakRecords()
+    private function getBreakRecords(bool $paginate = false)
     {
         $query = Breaks::query();
         $this->applyCommonFilters($query);
-        return $query->orderBy('date', 'desc')
-            ->orderBy('actual_return', 'desc')
-            ->get();
+        $query->orderBy('date', 'desc')->orderBy('actual_return', 'desc');
+
+        return $paginate ? $query->paginate(15) : $query->get();
     }
 
-    private function getNightShiftRecords()
+    private function getNightShiftRecords(bool $paginate = false)
     {
         $query = NightShift::query();
         $this->applyCommonFilters($query);
-        return $query->orderBy('date', 'desc')
-            ->orderBy('check_in_time', 'desc')
-            ->get();
+        $query->orderBy('date', 'desc')->orderBy('check_in_time', 'desc');
+
+        return $paginate ? $query->paginate(15) : $query->get();
     }
 
-    private function getVisitorRecords()
+    private function getVisitorRecords(bool $paginate = false)
     {
         $query = Visitor::query();
         $this->applyCommonFilters($query, false);
-        return $query->orderBy('date', 'desc')
-            ->orderBy('entry_time', 'desc')
-            ->get();
+        $query->orderBy('date', 'desc')->orderBy('entry_time', 'desc');
+
+        return $paginate ? $query->paginate(15) : $query->get();
     }
 
-    private function getDeliveryRecords()
+    private function getDeliveryRecords(bool $paginate = false)
     {
         $query = Delivery::query();
         $this->applyCommonFilters($query, false);
-        return $query->orderBy('date', 'desc')
-            ->orderBy('entry_time', 'desc')
-            ->get();
+        $query->orderBy('date', 'desc')->orderBy('entry_time', 'desc');
+
+        return $paginate ? $query->paginate(15) : $query->get();
     }
 
-    private function getVehiclePassRecords()
+    private function getVehiclePassRecords(bool $paginate = false)
     {
-        return $this->getCompanyVehiclePassRecords()
+        $records = $this->getCompanyVehiclePassRecords()
             ->merge($this->getEmployeeVehiclePassRecords())
             ->merge($this->getOtherVehiclePassRecords())
             ->sortByDesc(fn ($record) => $record->date . ' ' . ($record->leaving_time ?? '00:00'))
             ->values();
+
+        return $paginate ? $this->paginateCollection($records, 15) : $records;
     }
 
     private function applyVehiclePassDateFilters($query)
@@ -306,11 +363,11 @@ new class extends Component
         });
     }
 
-    private function getKeyRecords()
+    private function getKeyRecords(bool $paginate = false)
     {
         $query = KeyBorrowing::query()
             ->with(['vehicleKey', 'facilityKey', 'boxKey']);
-        
+
         if ($this->dateFrom) {
             $query->whereDate('date', '>=', $this->dateFrom);
         }
@@ -324,10 +381,10 @@ new class extends Component
         if ($this->department) {
             $query->where('borrower_department', $this->department);
         }
-        
-        return $query->orderBy('date', 'desc')
-            ->orderBy('borrowed_at', 'desc')
-            ->get();
+
+        $query->orderBy('date', 'desc')->orderBy('borrowed_at', 'desc');
+
+        return $paginate ? $query->paginate(15) : $query->get();
     }
 
     public function export()
@@ -516,7 +573,7 @@ new class extends Component
         <flux:text class="mt-2 mb-4">Detailed information based on selected filters.</flux:text>
 
         @if($this->category && count($this->columns()) > 0)
-        <flux:table>
+        <flux:table :paginate="$this->paginatedRecords">
             <flux:table.columns>
                 @foreach($this->columns() as $col)
                     <flux:table.column>{{ $col }}</flux:table.column>
@@ -528,7 +585,7 @@ new class extends Component
             </flux:table.columns>
 
             <flux:table.rows>
-                @forelse($this->records() as $record)
+                @forelse($this->paginatedRecords as $record)
                     <flux:table.row>
                         @switch($this->category)
                             @case('late')
