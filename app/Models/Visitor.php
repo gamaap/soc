@@ -4,14 +4,20 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Visitor extends Model
 {
     protected $guarded = [];
 
     protected $casts = [
-        'date' => 'date'
+        'date' => 'date',
     ];
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(VisitorItems::class);
+    }
 
     public function getFormattedDateAttribute()
     {

@@ -8,9 +8,11 @@ use App\Models\Breaks;
 use App\Models\NightShift;
 use App\Models\Visitor;
 use App\Models\Delivery;
-use App\Models\VehiclePass;
 use App\Models\KeyBorrowing;
 use App\Models\SuperappDepartment;
+use App\Models\SuperappCarDriverRequest;
+use App\Models\EmployeePass;
+use App\Models\OtherPass;
 use Flux\Flux;
 use Livewire\WithPagination;
 
@@ -35,9 +37,19 @@ new class extends Component
             'night_shift' => NightShift::count(),
             'visitor' => Visitor::count(),
             'delivery' => Delivery::count(),
-            'vehicle_pass' => VehiclePass::count(),
+            'vehicle_pass' => $this->vehiclePassBaseCount(),
             'keys' => KeyBorrowing::count(),
         ];
+    }
+
+    private function vehiclePassBaseCount(): int
+    {
+        return SuperappCarDriverRequest::whereIn('status', ['Assigned', 'In Transit', 'Completed'])
+            ->where('plant_id', 1)
+            ->whereNotNull('security_departed_time')
+            ->count()
+            + EmployeePass::count()
+            + OtherPass::count();
     }
 
     #[Computed]
@@ -75,7 +87,7 @@ new class extends Component
             'night_shift' => ['Date', 'Name', 'Department', 'Check-in Time', 'Check-out Time'],
             'visitor' => ['Date', 'Name', 'Company', 'Visiting', 'License Plate', 'Card Number', 'Entry Time', 'Exit Time'],
             'delivery' => ['Date', 'Name', 'Company', 'Visiting', 'License Plate', 'Card Number', 'Entry Time', 'Exit Time'],
-            'vehicle_pass' => ['Date', 'Name', 'License Plate', 'Purpose', 'Destination', 'Starting KM', 'Ending KM', 'Leaving Time', 'Return Time'],
+            'vehicle_pass' => ['Type', 'Date', 'Name', 'License Plate', 'Purpose', 'Destination', 'Starting KM', 'Ending KM', 'Leaving Time', 'Return Time'],
             'keys' => ['Date', 'Key', 'Borrower Name', 'Department', 'Borrowed At', 'Returned At'],
             default => [],
         };
@@ -90,7 +102,7 @@ new class extends Component
             'night_shift' => NightShift::count() > 0,
             'visitor' => Visitor::count() > 0,
             'delivery' => Delivery::count() > 0,
-            'vehicle_pass' => VehiclePass::count() > 0,
+            'vehicle_pass' => $this->vehiclePassBaseCount() > 0,
             'keys' => KeyBorrowing::count() > 0,
             default => false,
         };
@@ -108,7 +120,7 @@ new class extends Component
             return null;
         }
 
-        return Visitor::find($this->visitorId);
+        return Visitor::with('items')->find($this->visitorId);
     }
 
     #[Computed]
@@ -118,7 +130,7 @@ new class extends Component
             return null;
         }
 
-        return Delivery::with('items')->find($this->deliveryId);
+        return Delivery::with(['entryItems', 'exitItems'])->find($this->deliveryId);
     }
 
     public function showVisitor($id)
@@ -203,11 +215,95 @@ new class extends Component
 
     private function getVehiclePassRecords()
     {
-        $query = VehiclePass::query();
-        $this->applyCommonFilters($query, false);
-        return $query->orderBy('date', 'desc')
-            ->orderBy('leaving_time', 'desc')
-            ->get();
+        return $this->getCompanyVehiclePassRecords()
+            ->merge($this->getEmployeeVehiclePassRecords())
+            ->merge($this->getOtherVehiclePassRecords())
+            ->sortByDesc(fn ($record) => $record->date . ' ' . ($record->leaving_time ?? '00:00'))
+            ->values();
+    }
+
+    private function applyVehiclePassDateFilters($query)
+    {
+        if ($this->dateFrom) {
+            $query->whereDate('date', '>=', $this->dateFrom);
+        }
+        if ($this->dateTo) {
+            $query->whereDate('date', '<=', $this->dateTo);
+        }
+        if ($this->month) {
+            $query->whereYear('date', substr($this->month, 0, 4))
+                  ->whereMonth('date', substr($this->month, 5, 2));
+        }
+
+        return $query;
+    }
+
+    private function getCompanyVehiclePassRecords()
+    {
+        $query = SuperappCarDriverRequest::query()
+            ->whereIn('status', ['Assigned', 'In Transit', 'Completed'])
+            ->where('plant_id', 1)
+            ->whereNotNull('security_departed_time')
+            ->with(['drivers.driver', 'car', 'purpose', 'destinations']);
+
+        $this->applyVehiclePassDateFilters($query);
+
+        return $query->get()->map(function ($pass) {
+            return (object) [
+                'type' => 'Company',
+                'date' => $pass->date,
+                'name' => $pass->drivers->map(fn ($driver) => $driver->driver->name ?? null)->filter()->join(', ') ?: '-',
+                'license_plate' => $pass->car->car_vehicle_number ?? '-',
+                'purpose' => $pass->purpose->code ?? '-',
+                'destination' => $pass->destinations->pluck('city')->filter(fn ($city) => $city !== '-')->join(', ') ?: '-',
+                'starting_km' => $pass->starting_km,
+                'ending_km' => $pass->ending_km,
+                'leaving_time' => $pass->security_departed_time ? Carbon::parse($pass->security_departed_time)->format('H:i') : null,
+                'return_time' => $pass->security_returned_time ? Carbon::parse($pass->security_returned_time)->format('H:i') : null,
+            ];
+        });
+    }
+
+    private function getEmployeeVehiclePassRecords()
+    {
+        $query = EmployeePass::query();
+        $this->applyVehiclePassDateFilters($query);
+
+        return $query->get()->map(function ($pass) {
+            return (object) [
+                'type' => 'Employee',
+                'date' => $pass->date,
+                'name' => $pass->name,
+                'license_plate' => $pass->license_plate ?? '-',
+                'purpose' => $pass->purpose ?? '-',
+                'destination' => '-',
+                'starting_km' => null,
+                'ending_km' => null,
+                'leaving_time' => $pass->entry_time,
+                'return_time' => $pass->leaving_time,
+            ];
+        });
+    }
+
+    private function getOtherVehiclePassRecords()
+    {
+        $query = OtherPass::query();
+        $this->applyVehiclePassDateFilters($query);
+
+        return $query->get()->map(function ($pass) {
+            return (object) [
+                'type' => 'Other',
+                'date' => $pass->date,
+                'name' => $pass->name,
+                'license_plate' => $pass->license_plate ?? '-',
+                'purpose' => $pass->purpose ?? '-',
+                'destination' => '-',
+                'starting_km' => null,
+                'ending_km' => null,
+                'leaving_time' => $pass->leaving_time,
+                'return_time' => $pass->entry_time,
+            ];
+        });
     }
 
     private function getKeyRecords()
@@ -297,6 +393,7 @@ new class extends Component
                         $record->exit_time ?? '-',
                     ],
                     'vehicle_pass' => [
+                        $record->type,
                         Carbon::parse($record->date)->format('d/m/Y'),
                         $record->name,
                         $record->license_plate,
@@ -304,8 +401,8 @@ new class extends Component
                         $record->destination,
                         $record->starting_km ?? '-',
                         $record->ending_km ?? '-',
-                        $record->leaving_time ? Carbon::parse($record->leaving_time)->format('H:i') : '-',
-                        $record->return_time ? Carbon::parse($record->return_time)->format('H:i') : '-',
+                        $record->leaving_time ?: '-',
+                        $record->return_time ?: '-',
                     ],
                     'keys' => [
                         Carbon::parse($record->date)->format('d/m/Y'),
@@ -503,6 +600,7 @@ new class extends Component
                                 @break
 
                             @case('vehicle_pass')
+                                <flux:table.cell>{{ $record->type }}</flux:table.cell>
                                 <flux:table.cell>{{ Carbon::parse($record->date)->format('d/m/Y') }}</flux:table.cell>
                                 <flux:table.cell>{{ $record->name }}</flux:table.cell>
                                 <flux:table.cell>{{ $record->license_plate }}</flux:table.cell>
@@ -510,8 +608,8 @@ new class extends Component
                                 <flux:table.cell>{{ $record->destination }}</flux:table.cell>
                                 <flux:table.cell>{{ $record->starting_km ?? '-' }}</flux:table.cell>
                                 <flux:table.cell>{{ $record->ending_km ?? '-' }}</flux:table.cell>
-                                <flux:table.cell>{{ $record->leaving_time ? Carbon::parse($record->leaving_time)->format('H:i') : '-' }}</flux:table.cell>
-                                <flux:table.cell>{{ $record->return_time ? Carbon::parse($record->return_time)->format('H:i') : '-' }}</flux:table.cell>
+                                <flux:table.cell>{{ $record->leaving_time ?: '-' }}</flux:table.cell>
+                                <flux:table.cell>{{ $record->return_time ?: '-' }}</flux:table.cell>
                                 @break
 
                             @case('keys')
@@ -593,6 +691,19 @@ new class extends Component
                             </div>
                         </div>
 
+                        @if ($this->visitor->items->isNotEmpty())
+                            <flux:separator variant="subtle" />
+
+                            <flux:heading size="lg">Items Taken Out</flux:heading>
+
+                            @foreach ($this->visitor->items as $item)
+                                <div class="flex items-center justify-between bg-gray-400/5 rounded-xl p-2 my-2">
+                                    <flux:text variant="strong">{{ $item->item_name }}</flux:text>
+                                    <flux:text variant="strong">{{ $item->quantity }} {{ $item->uom }}</flux:text>
+                                </div>
+                            @endforeach
+                        @endif
+
                         <flux:separator variant="subtle" />
 
                         <flux:heading size="lg">Record Information</flux:heading>
@@ -661,12 +772,24 @@ new class extends Component
                         <flux:separator variant="subtle" />
                         <flux:heading size="lg">Items & Quantity</flux:heading>
 
-                        @foreach ($this->delivery->items as $item)
+                        @foreach ($this->delivery->entryItems as $item)
                             <div class="flex items-center justify-between bg-gray-400/5 rounded-xl p-2 my-2">
                                 <flux:text variant="strong">{{ $item->item_name }}</flux:text>
                                 <flux:text variant="strong">{{ $item->quantity }} {{ $item->uom }}</flux:text>
                             </div>
                         @endforeach
+
+                        @if ($this->delivery->exitItems->isNotEmpty())
+                            <flux:separator variant="subtle" />
+                            <flux:heading size="lg">Items Taken Out</flux:heading>
+
+                            @foreach ($this->delivery->exitItems as $item)
+                                <div class="flex items-center justify-between bg-gray-400/5 rounded-xl p-2 my-2">
+                                    <flux:text variant="strong">{{ $item->item_name }}</flux:text>
+                                    <flux:text variant="strong">{{ $item->quantity }} {{ $item->uom }}</flux:text>
+                                </div>
+                            @endforeach
+                        @endif
 
                         <flux:separator variant="subtle" />
                         <flux:heading size="lg">Reason For Delivery</flux:heading>

@@ -15,6 +15,16 @@ class Delivery extends Model
         return $this->hasMany(DeliveryItems::class);
     }
 
+    public function entryItems(): HasMany
+    {
+        return $this->hasMany(DeliveryItems::class)->where('direction', 'in');
+    }
+
+    public function exitItems(): HasMany
+    {
+        return $this->hasMany(DeliveryItems::class)->where('direction', 'out');
+    }
+
     public function getFormattedDateAttribute()
     {
         return Carbon::parse($this->date)->format('d/m/Y');

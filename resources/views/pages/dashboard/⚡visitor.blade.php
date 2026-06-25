@@ -18,6 +18,9 @@ new class extends Component
     public $card_number;
     public $purpose;
     public $visitorId = null;
+    public $exitVisitorId = null;
+    public $exitHasItems = false;
+    public $exitItems = [];
     public $search = '';
 
     public function updatedSearch()
@@ -54,14 +57,58 @@ new class extends Component
         Flux::modal('record-visitor')->close();
     }
 
-    public function recordExit($id)
+    public function openExitModal($id)
     {
-        $visitor = Visitor::findOrFail($id);
+        $this->exitVisitorId = $id;
+        $this->exitHasItems = false;
+        $this->exitItems = [
+            ['item_name' => '', 'quantity' => '', 'uom' => '']
+        ];
+
+        Flux::modal('record-exit')->show();
+    }
+
+    public function addExitItem()
+    {
+        $this->exitItems[] = [
+            'item_name' => '',
+            'quantity' => '',
+            'uom' => '',
+        ];
+    }
+
+    public function removeExitItem($index)
+    {
+        unset($this->exitItems[$index]);
+        $this->exitItems = array_values($this->exitItems);
+    }
+
+    public function confirmExit()
+    {
+        $visitor = Visitor::findOrFail($this->exitVisitorId);
 
         $visitor->update([
             'exit_time' => Carbon::now()->format('H:i:s'),
             'updated_by' => auth()->id(),
         ]);
+
+        if ($this->exitHasItems) {
+            foreach ($this->exitItems as $item) {
+                if (blank($item['item_name'])) {
+                    continue;
+                }
+
+                $visitor->items()->create([
+                    'item_name' => $item['item_name'],
+                    'quantity' => $item['quantity'] ?: 0,
+                    'uom' => $item['uom'],
+                ]);
+            }
+        }
+
+        $this->reset(['exitVisitorId', 'exitHasItems', 'exitItems']);
+
+        Flux::modal('record-exit')->close();
     }
 
     #[Computed]
@@ -85,7 +132,7 @@ new class extends Component
             return null;
         }
 
-        return Visitor::find($this->visitorId);
+        return Visitor::with('items')->find($this->visitorId);
     }
 
     public function showVisitor($id)
@@ -146,12 +193,12 @@ new class extends Component
                             <flux:table.cell>{{ $visitor->entry_time }}</flux:table.cell>
                             <flux:table.cell>
                                 @if (! $visitor->exit_time)
-                                    <flux:button 
-                                    wire:click="recordExit({{ $visitor->id }})"
-                                    wire:target="recordExit({{ $visitor->id }})"
+                                    <flux:button
+                                    wire:click="openExitModal({{ $visitor->id }})"
+                                    wire:target="openExitModal({{ $visitor->id }})"
                                     >
                                         Record Exit
-                                    </flux:button> 
+                                    </flux:button>
                                 @else
                                     {{ $visitor->exit_time }}
                                 @endif
@@ -270,6 +317,19 @@ new class extends Component
                             </div>
                         </div>
 
+                        @if ($this->visitor->items->isNotEmpty())
+                            <flux:separator variant="subtle" />
+
+                            <flux:heading size="lg">Items Taken Out</flux:heading>
+
+                            @foreach ($this->visitor->items as $item)
+                                <div class="flex items-center justify-between bg-gray-400/5 rounded-xl p-2 my-2">
+                                    <flux:text variant="strong">{{ $item->item_name }}</flux:text>
+                                    <flux:text variant="strong">{{ $item->quantity }} {{ $item->uom }}</flux:text>
+                                </div>
+                            @endforeach
+                        @endif
+
                         <flux:separator variant="subtle" />
 
                         <flux:heading size="lg">Record Information</flux:heading>
@@ -287,7 +347,72 @@ new class extends Component
                     @endif
                 </div>
             </flux:modal>
-        
+
+            <flux:modal name="record-exit" class="md:w-200" :dismissible="false">
+                <form wire:submit.prevent="confirmExit" action="">
+                    <div class="space-y-6">
+                        <div>
+                            <flux:heading size="lg">Record Visitor Exit</flux:heading>
+                            <flux:text class="mt-2">Confirm exit time and check if the visitor is taking items out.</flux:text>
+                        </div>
+
+                        <flux:radio.group wire:model.live="exitHasItems" label="Apakah tamu membawa barang keluar?">
+                            <flux:radio value="1" label="Ya" />
+                            <flux:radio value="0" label="Tidak" />
+                        </flux:radio.group>
+
+                        @if ($exitHasItems)
+                            <div class="flex items-center justify-between mb-3">
+                                <flux:text variant="strong">Items Taken Out</flux:text>
+                                <flux:button icon="plus" size="sm" variant="primary" wire:click="addExitItem">Add Item</flux:button>
+                            </div>
+
+                            @foreach ($exitItems as $index => $item)
+                                <div class="grid @if ($index > 0) grid-cols-9 @else grid-cols-8 @endif gap-2">
+                                    <div class="col-span-4">
+                                        <flux:input wire:model="exitItems.{{ $index }}.item_name" placeholder="Item Name" autocomplete="off" />
+                                    </div>
+                                    <div class="col-span-2">
+                                        <flux:input wire:model="exitItems.{{ $index }}.quantity" placeholder="Quantity" autocomplete="off" />
+                                    </div>
+                                    <div class="col-span-2">
+                                        <flux:select wire:model="exitItems.{{ $index }}.uom" placeholder="Choose...">
+                                            <flux:select.option>Pcs</flux:select.option>
+                                            <flux:select.option>Meters</flux:select.option>
+                                            <flux:select.option>Kgs</flux:select.option>
+                                            <flux:select.option>Sacks</flux:select.option>
+                                            <flux:select.option>Kaleng</flux:select.option>
+                                            <flux:select.option>Liters</flux:select.option>
+                                            <flux:select.option>Coils</flux:select.option>
+                                            <flux:select.option>Carries</flux:select.option>
+                                            <flux:select.option>Box</flux:select.option>
+                                            <flux:select.option>Bucket</flux:select.option>
+                                        </flux:select>
+                                    </div>
+                                    @if($index > 0)
+                                        <div class="ms-2 place-content-center">
+                                            <flux:button
+                                                size="sm"
+                                                variant="danger"
+                                                wire:click="removeExitItem({{ $index }})"
+                                                wire:target="removeExitItem({{ $index }})"
+                                            >
+                                                <flux:icon.trash variant="mini" />
+                                            </flux:button>
+                                        </div>
+                                    @endif
+                                </div>
+                            @endforeach
+                        @endif
+
+                        <div class="flex">
+                            <flux:spacer />
+                            <flux:button type="submit" variant="primary" class="w-full">Record Exit</flux:button>
+                        </div>
+                    </div>
+                </form>
+            </flux:modal>
+
         </div>
     </x-pages::dashboard.layout>
 </section>
