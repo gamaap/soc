@@ -11,7 +11,7 @@ class DraftBreakEntry extends Model
         'date',
         'name',
         'department',
-        'division',
+        'section',
         'actual_arrival',
         'minutes_late',
         'photo',

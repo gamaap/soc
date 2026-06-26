@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\Auth\SsoController;
 use App\Models\SuperappDepartment;
-use App\Models\SuperappDivision;
+use App\Models\SuperappSection;
 use App\Models\SuperappEmployee;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -59,14 +59,14 @@ Route::get('/employees/api', function (Request $request) {
         ->orderBy('fullname')
         ->with([
             'department:id,name',
-            'division:id,name'
+            'section:id,name'
         ])
         ->get([
             'id',
             'fullname',
             'username',
             'departement_id',
-            'division_id',
+            'section_id',
             'employee_id',
             'nik',
             'photo'
@@ -122,8 +122,8 @@ Route::get('/proxy/employee-photo', function (Request $request) {
         ->header('Cache-Control', 'public, max-age=21600');
 })->middleware('auth');
 
-Route::get('/divisions/api', function () {
-    return SuperappDivision::all();
+Route::get('/sections/api', function () {
+    return SuperappSection::all();
 })->middleware('auth');
 
 require __DIR__ . '/settings.php';

@@ -6,7 +6,7 @@ use App\Models\NightShift;
 use Livewire\Attributes\Computed;
 use Illuminate\Support\Facades\DB;
 use App\Models\SuperappDepartment;
-use App\Models\SuperappDivision;
+use App\Models\SuperappSection;
 use Livewire\WithPagination;
 
 new class extends Component
@@ -16,7 +16,7 @@ new class extends Component
     public $card_number = '';
     public $employee = '';
     public $department = '';
-    public $division = '';
+    public $section = '';
     public $photo = '';
     public $photoLoading = false;
     public $search = '';
@@ -31,7 +31,7 @@ new class extends Component
         if (empty($this->card_number)) {
             $this->employee = '';
             $this->department = '';
-            $this->division = '';
+            $this->section = '';
             $this->photo = '';
             $this->photoLoading = false;
             return;
@@ -46,18 +46,18 @@ new class extends Component
             $department = SuperappDepartment::find($rfidEmployee->department_id);
             $this->department = $department ? $department->name : '';
 
-            if (isset($rfidEmployee->division_id)) {
-                $division = SuperappDivision::find($rfidEmployee->division_id);
-                $this->division = $division ? $division->name : '';
+            if (isset($rfidEmployee->section_id)) {
+                $section = SuperappSection::find($rfidEmployee->section_id);
+                $this->section = $section ? $section->name : '';
             } else {
-                $this->division = '';
+                $this->section = '';
             }
 
             $this->photo = $rfidEmployee->photo ?: '';
         } else {
             $this->employee = '';
             $this->department = '';
-            $this->division = '';
+            $this->section = '';
             $this->photo = '';
             session()->flash('error', 'Employee not found for this card number.');
         }
@@ -70,7 +70,7 @@ new class extends Component
         $this->validate([
             'employee' => 'required|string|min:3|max:255',
             'department' => 'required|string|min:3',
-            'division' => 'nullable|string|min:3'
+            'section' => 'nullable|string|min:3'
         ]);
 
         NightShift::where('name', $this->employee)
@@ -83,14 +83,14 @@ new class extends Component
         NightShift::create([
             'name' => $this->employee,
             'department' => $this->department,
-            'division' => $this->division,
+            'section' => $this->section,
             'date' => $now->toDateString(),
             'check_in_time' => $now->format('H:i:s'),
             'photo' => $this->photo,
             'created_by' => auth()->id()
         ]);
 
-        $this->reset(['card_number', 'employee', 'department', 'division', 'photo']);
+        $this->reset(['card_number', 'employee', 'department', 'section', 'photo']);
     }
 
     public function checkOut($id)
@@ -170,7 +170,7 @@ new class extends Component
                         </div>
                         <div class="col-span-3">
                             <div class="autoComplete_wrapper" wire:ignore>
-                                <flux:input id="division" wire:model="division" :label="__('Division')" autocomplete="off" type="text" />
+                                <flux:input id="section" wire:model="section" :label="__('Section')" autocomplete="off" type="text" />
                             </div>
                         </div>
                         <div class="col-span-2">
@@ -199,7 +199,7 @@ new class extends Component
                     <flux:table.column>Date</flux:table.column>
                     <flux:table.column>Employee</flux:table.column>
                     <flux:table.column>Department</flux:table.column>
-                    <flux:table.column>Division</flux:table.column>
+                    <flux:table.column>Section</flux:table.column>
                     <flux:table.column>Check-Out Time</flux:table.column>
                     <flux:table.column>Check-In Time</flux:table.column>
                 </flux:table.columns>
@@ -213,7 +213,7 @@ new class extends Component
                             <flux:table.cell>{{ $shift->formatted_date }}</flux:table.cell>
                             <flux:table.cell>{{ $shift->name }}</flux:table.cell>
                             <flux:table.cell>{{ $shift->department }}</flux:table.cell>
-                            <flux:table.cell>{{ $shift->division ?? '-' }}</flux:table.cell>
+                            <flux:table.cell>{{ $shift->section ?? '-' }}</flux:table.cell>
                             <flux:table.cell>{{ $shift->check_in_time }}</flux:table.cell>
                             <flux:table.cell>
                                 @if (! $shift->check_out_time)
@@ -279,7 +279,7 @@ new class extends Component
                     autoCompleteJS.input.value = selection.fullname;
                     $wire.set('employee', selection.fullname);
                     $wire.set('department', selection.department?.name ?? '');
-                    $wire.set('division', selection.division?.name ?? '');
+                    $wire.set('section', selection.section?.name ?? '');
 
                     // Show loader until the image loads/fails
                     $wire.set('photoLoading', true);
@@ -331,12 +331,12 @@ new class extends Component
         }
     });
 
-    const division = new autoComplete({
-        selector: "#division",
+    const section = new autoComplete({
+        selector: "#section",
         data: {
             src: async (query) => {
                 try {
-                    const source = await fetch(`/divisions/api?search=${encodeURIComponent(query)}`);
+                    const source = await fetch(`/sections/api?search=${encodeURIComponent(query)}`);
                     const data = await source.json();
 
                     return data;
@@ -357,7 +357,7 @@ new class extends Component
                 selection: (event) => {
                     const selection = event.detail.selection.value;
 
-                    $wire.set('division', selection.name);
+                    $wire.set('section', selection.name);
                 }
             }
         }

@@ -4,8 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class SuperappDivision extends Model
+class SuperappSection extends Model
 {
     protected $connection = 'superapp';
-    protected $table = 'm_divisions';
+    protected $table = 'm_sections';
 }

@@ -6,7 +6,7 @@ use App\Models\Breaks;
 use Livewire\Attributes\Computed;
 use Illuminate\Support\Facades\DB;
 use App\Models\SuperappDepartment;
-use App\Models\SuperappDivision;
+use App\Models\SuperappSection;
 use Livewire\WithPagination;
 
 new class extends Component
@@ -16,7 +16,7 @@ new class extends Component
     public $card_number = '';
     public $employee = '';
     public $department = '';
-    public $division = '';
+    public $section = '';
     public $photo = '';
     public $photoLoading = false;
     public $search = '';
@@ -31,7 +31,7 @@ new class extends Component
         if (empty($this->card_number)) {
             $this->employee = '';
             $this->department = '';
-            $this->division = '';
+            $this->section = '';
             $this->photo = '';
             $this->photoLoading = false;
             return;
@@ -46,19 +46,19 @@ new class extends Component
             $department = SuperappDepartment::find($rfidEmployee->department_id);
             $this->department = $department ? $department->name : '';
             
-            // Try to get division from RFID if available, otherwise leave empty
-            if (isset($rfidEmployee->division_id)) {
-                $division = SuperappDivision::find($rfidEmployee->division_id);
-                $this->division = $division ? $division->name : '';
+            // Try to get section from RFID if available, otherwise leave empty
+            if (isset($rfidEmployee->section_id)) {
+                $section = SuperappSection::find($rfidEmployee->section_id);
+                $this->section = $section ? $section->name : '';
             } else {
-                $this->division = '';
+                $this->section = '';
             }
             
             $this->photo = $rfidEmployee->photo ?: '';
         } else {
             $this->employee = '';
             $this->department = '';
-            $this->division = '';
+            $this->section = '';
             $this->photo = '';
             session()->flash('error', 'Employee not found for this card number.');
         }
@@ -71,7 +71,7 @@ new class extends Component
         $validated = $this->validate([
             'employee' => 'required|string|min:3|max:255',
             'department' => 'required|string|min:3',
-            'division' => 'nullable|string|min:3'
+            'section' => 'nullable|string|min:3'
         ]);
 
         $return = Carbon::now();
@@ -86,7 +86,7 @@ new class extends Component
         Breaks::create([
             'name' => $this->employee,
             'department' => $this->department,
-            'division' => $this->division,
+            'section' => $this->section,
             'actual_return' => $return->format('H:i:s'),
             'minutes_late' => $minutesLate,
             'date' => $return->toDateString(),
@@ -94,7 +94,7 @@ new class extends Component
             'created_by' => Auth::id()
         ]);
 
-        $this->reset(['card_number', 'employee', 'department', 'division', 'photo']);
+        $this->reset(['card_number', 'employee', 'department', 'section', 'photo']);
     }
 
     #[Computed]
@@ -159,7 +159,7 @@ new class extends Component
                         </div>
                         <div class="col-span-3">
                             <div class="autoComplete_wrapper" wire:ignore>
-                                <flux:input wire:model="division" id="division" :label="__('Division')" type="text" autocomplete="off" />
+                                <flux:input wire:model="section" id="section" :label="__('Section')" type="text" autocomplete="off" />
                             </div>
                         </div>
                         <div class="col-span-2">
@@ -190,7 +190,7 @@ new class extends Component
                     <flux:table.column>Date</flux:table.column>
                     <flux:table.column>Employee</flux:table.column>
                     <flux:table.column>Department</flux:table.column>
-                    <flux:table.column>Division</flux:table.column>
+                    <flux:table.column>Section</flux:table.column>
                     {{-- <flux:table.column>Standard Time</flux:table.column> --}}
                     <flux:table.column>Actual Return</flux:table.column>
                     {{-- <flux:table.column>Minutes Late</flux:table.column> --}}
@@ -205,7 +205,7 @@ new class extends Component
                             <flux:table.cell>{{ $break->formatted_date }}</flux:table.cell>
                             <flux:table.cell>{{ $break->name }}</flux:table.cell>
                             <flux:table.cell>{{ $break->department }}</flux:table.cell>
-                            <flux:table.cell>{{ $break->division ?? '-' }}</flux:table.cell>
+                            <flux:table.cell>{{ $break->section ?? '-' }}</flux:table.cell>
                             {{-- <flux:table.cell>13.00</flux:table.cell> --}}
                             <flux:table.cell>{{ $break->actual_return }}</flux:table.cell>
                             {{-- <flux:table.cell>
@@ -268,7 +268,7 @@ new class extends Component
                     autoCompleteJS.input.value = selection.fullname;
                     $wire.set('employee', selection.fullname);
                     $wire.set('department', selection.department?.name ?? '');
-                    $wire.set('division', selection.division?.name ?? '');
+                    $wire.set('section', selection.section?.name ?? '');
 
                     // Show loader until the image loads/fails
                     $wire.set('photoLoading', true);
@@ -320,12 +320,12 @@ new class extends Component
         }
     });
 
-    const division = new autoComplete({
-        selector: "#division",
+    const section = new autoComplete({
+        selector: "#section",
         data: {
             src: async (query) => {
                 try {
-                    const source = await fetch(`/divisions/api?search=${encodeURIComponent(query)}`);
+                    const source = await fetch(`/sections/api?search=${encodeURIComponent(query)}`);
                     const data = await source.json();
 
                     return data;
@@ -346,7 +346,7 @@ new class extends Component
                 selection: (event) => {
                     const selection = event.detail.selection.value;
 
-                    $wire.set('division', selection.name);
+                    $wire.set('section', selection.name);
                 }
             }
         }

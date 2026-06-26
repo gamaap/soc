@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Models\SuperappDepartment;
-use App\Models\SuperappDivision;
+use App\Models\SuperappSection;
 use Illuminate\Database\Eloquent\Model;
 
 class SuperappEmployee extends Model
@@ -17,8 +17,8 @@ class SuperappEmployee extends Model
         return $this->belongsTo(SuperappDepartment::class, 'departement_id');
     }
 
-    public function division()
+    public function section()
     {
-        return $this->belongsTo(SuperappDivision::class, 'division_id');
+        return $this->belongsTo(SuperappSection::class, 'section_id');
     }
 }
