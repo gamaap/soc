@@ -41,7 +41,7 @@ new class extends Component
 
         $now = Carbon::now();
 
-        $visitor = Visitor::create([
+        Visitor::create([
             'name' => $this->name,
             'company' => $this->company,
             'visiting' => $this->visiting,
@@ -54,13 +54,9 @@ new class extends Component
             'created_by' => auth()->id(),
         ]);
 
-        $printUrl = route('dashboard.visitor.print', $visitor);
-
         $this->reset();
 
         Flux::modal('record-visitor')->close();
-
-        $this->dispatch('open-print', url: $printUrl);
     }
 
     public function openExitModal($id)
@@ -478,9 +474,5 @@ new class extends Component
                 }
             }
         }
-    });
-
-    window.addEventListener('open-print', (event) => {
-        window.open(event.detail.url, '_blank');
     });
 </script>
