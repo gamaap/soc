@@ -14,6 +14,7 @@ new class extends Component
     public $name;
     public $company;
     public $visiting;
+    public $visiting_section;
     public $license_plate;
     public $card_number;
     public $purpose;
@@ -40,10 +41,11 @@ new class extends Component
 
         $now = Carbon::now();
 
-        Visitor::create([
+        $visitor = Visitor::create([
             'name' => $this->name,
             'company' => $this->company,
             'visiting' => $this->visiting,
+            'visiting_section' => $this->visiting_section,
             'license_plate' => $this->license_plate,
             'card_number' => $this->card_number,
             'purpose' => $this->purpose,
@@ -52,9 +54,13 @@ new class extends Component
             'created_by' => auth()->id(),
         ]);
 
+        $printUrl = route('dashboard.visitor.print', $visitor);
+
         $this->reset();
 
         Flux::modal('record-visitor')->close();
+
+        $this->dispatch('open-print', url: $printUrl);
     }
 
     public function openExitModal($id)
@@ -204,14 +210,24 @@ new class extends Component
                                 @endif
                             </flux:table.cell>
                             <flux:table.cell>
-                                <flux:button 
-                                    icon="eye" 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    wire:click="showVisitor({{ $visitor->id }})"
-                                    wire:target="showVisitor({{ $visitor->id }})">
-                                    View
-                                </flux:button>
+                                <div class="flex gap-x-1">
+                                    <flux:button
+                                        icon="eye"
+                                        variant="ghost"
+                                        size="sm"
+                                        wire:click="showVisitor({{ $visitor->id }})"
+                                        wire:target="showVisitor({{ $visitor->id }})">
+                                        View
+                                    </flux:button>
+                                    <flux:button
+                                        icon="printer"
+                                        variant="ghost"
+                                        size="sm"
+                                        href="{{ route('dashboard.visitor.print', $visitor) }}"
+                                        target="_blank">
+                                        Print
+                                    </flux:button>
+                                </div>
                             </flux:table.cell>
                         </flux:table.row>
                     @empty
@@ -344,6 +360,17 @@ new class extends Component
                                 <flux:text class="mt-2" variant="strong">{{ $this->visitor->created_at }}</flux:text>
                             </div>
                         </div>
+
+                        <div class="flex">
+                            <flux:spacer />
+                            <flux:button
+                                icon="printer"
+                                variant="primary"
+                                href="{{ route('dashboard.visitor.print', $this->visitor) }}"
+                                target="_blank">
+                                Print Formulir
+                            </flux:button>
+                        </div>
                     @endif
                 </div>
             </flux:modal>
@@ -447,8 +474,13 @@ new class extends Component
 
                     autoCompleteJS.input.value = selection.fullname;
                     $wire.set('visiting', selection.fullname);
+                    $wire.set('visiting_section', selection.section?.name ?? selection.department?.name ?? null);
                 }
             }
         }
+    });
+
+    window.addEventListener('open-print', (event) => {
+        window.open(event.detail.url, '_blank');
     });
 </script>
