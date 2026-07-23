@@ -2,22 +2,72 @@
 
 use Livewire\Component;
 use App\Models\LeaveRequest;
+use App\Models\SuperappLeaveApprovement;
+use App\Services\LeaveRequestSyncService;
 use Livewire\Attributes\Computed;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Livewire\WithPagination;
 
 new class extends Component
 {
 	use WithPagination;
-	
+
     public $date;
-    public $permitted_start_time;
-    public $permitted_end_time;
+    public $search = '';
     public $requestId;
+
+    public function mount()
+    {
+        $this->date = today()->toDateString();
+
+        $this->syncIfNeeded();
+    }
+
+    public function updatedDate()
+    {
+        $this->resetPage();
+        $this->syncIfNeeded();
+    }
+
+    public function updatedSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function refresh()
+    {
+        Cache::forget($this->syncCacheKey());
+        $this->syncIfNeeded();
+    }
+
+    private function syncIfNeeded(): void
+    {
+        if (! Cache::add($this->syncCacheKey(), true, now()->addMinutes(5))) {
+            return;
+        }
+
+        try {
+            app(LeaveRequestSyncService::class)->sync($this->date);
+        } catch (\Throwable $e) {
+            report($e);
+
+            session()->flash('error', 'Gagal mengambil data cuti dari PMS. Data yang tampil mungkin belum terbaru.');
+        }
+    }
+
+    private function syncCacheKey(): string
+    {
+        return 'leave-requests:synced:'.$this->date;
+    }
 
     public function recordActualTime($id)
     {
         $request = LeaveRequest::findOrFail($id);
+
+        if ($request->actual_time || $request->is_full_day) {
+            return;
+        }
 
         $request->update([
             'actual_time' => Carbon::now()->format('H:i:s'),
@@ -28,6 +78,10 @@ new class extends Component
     public function recordActualReturn($id)
     {
         $request = LeaveRequest::findOrFail($id);
+
+        if (! $request->actual_time || $request->will_not_return || $request->is_full_day) {
+            return;
+        }
 
         $request->update([
             'actual_return' => Carbon::now()->format('H:i:s'),
@@ -45,7 +99,12 @@ new class extends Component
     #[Computed]
     public function requests()
     {
-        return LeaveRequest::orderBy('id')->get();
+        return LeaveRequest::query()
+            ->where('active', true)
+            ->whereDate('date', $this->date)
+            ->when($this->search, fn ($query) => $query->whereRaw('LOWER(employee_name) LIKE ?', ['%'.strtolower($this->search).'%']))
+            ->orderBy('employee_name')
+            ->paginate(10);
     }
 
     #[Computed]
@@ -56,6 +115,28 @@ new class extends Component
         }
 
         return LeaveRequest::find($this->requestId);
+    }
+
+    #[Computed]
+    public function approvements()
+    {
+        if (! $this->request || ! $this->request->pms_request_id) {
+            return collect();
+        }
+
+        try {
+            return SuperappLeaveApprovement::query()
+                ->with('approver.position')
+                ->where('request_id', $this->request->pms_request_id)
+                ->where('request_type', 'leave')
+                ->where('is_delete', false)
+                ->orderBy('step_order')
+                ->get();
+        } catch (\Throwable $e) {
+            report($e);
+
+            return collect();
+        }
     }
 
 };
@@ -72,11 +153,22 @@ new class extends Component
                     <flux:text class="mt-2">View and track all approved leave requests.</flux:text>
                 </div>
                 <div>
-                    <flux:badge color="blue">TODO: Waiting for PMS</flux:badge>
+                    <flux:button icon="arrow-path" wire:click="refresh" wire:target="refresh">
+                        Sync Now
+                    </flux:button>
                 </div>
             </div>
 
-            <flux:table class="mt-4">
+            @if(session('error'))
+                <flux:error class="mt-4">{{ session('error') }}</flux:error>
+            @endif
+
+            <div class="flex flex-col md:flex-row gap-4 mt-4">
+                <flux:input type="date" wire:model.live="date" class="md:w-auto" />
+                <flux:input icon="magnifying-glass" placeholder="Search employee..." autocomplete="off" class="flex-1" wire:model.live.debounce.300ms="search" />
+            </div>
+
+            <flux:table class="mt-4" :paginate="$this->requests">
                 <flux:table.columns>
                     <flux:table.column>Employee</flux:table.column>
                     <flux:table.column>Department</flux:table.column>
@@ -101,39 +193,47 @@ new class extends Component
                             <flux:table.cell>{{ $request->formatted_date }}</flux:table.cell>
                             <flux:table.cell>{{ $request->formatted_time }} </flux:table.cell>
                             <flux:table.cell>
-                                @if (! $request->actual_time)
+                                @if ($request->is_full_day)
+                                    <flux:text class="text-zinc-400">
+                                        Not Required
+                                    </flux:text>
+                                @elseif (! $request->actual_time)
                                     <flux:button
                                         wire:click="recordActualTime({{ $request->id }})"
                                         wire:target="recordActualTime({{ $request->id }})"
                                         >
                                         Record Now
-                                    </flux:button> 
+                                    </flux:button>
                                 @else
-                                    {{ $request->actual_time }}
+                                    {{ Carbon::parse($request->actual_time)->format('H:i') }}
                                 @endif
                             </flux:table.cell>
                             <flux:table.cell>
-                                @if (! $request->permitted_end_time)
+                                @if ($request->is_full_day)
+                                    <flux:text class="text-zinc-400">
+                                        Not Required
+                                    </flux:text>
+                                @elseif ($request->will_not_return)
                                     <flux:text class="text-zinc-400">
                                         Will Not Return
                                     </flux:text>
                                 @elseif (! $request->actual_time)
                                     -
-                                @elseif ($request->actual_time && $request->actual_return)
-                                    {{ $request->actual_return }}
+                                @elseif ($request->actual_return)
+                                    {{ Carbon::parse($request->actual_return)->format('H:i') }}
                                 @else
                                     <flux:button
                                         wire:click="recordActualReturn({{ $request->id }})"
                                         wire:target="recordActualReturn({{ $request->id }})"
                                         >
                                         Record Now
-                                    </flux:button> 
+                                    </flux:button>
                                 @endif
                             </flux:table.cell>
                             <flux:table.cell>
-                                <flux:button 
-                                    icon="eye" 
-                                    variant="ghost" 
+                                <flux:button
+                                    icon="eye"
+                                    variant="ghost"
                                     size="sm"
                                     wire:click="showRequest({{ $request->id }})"
                                     wire:target="showRequest({{ $request->id }})"
@@ -144,9 +244,9 @@ new class extends Component
                         </flux:table.row>
                     @empty
                         <flux:table.row>
-                            <flux:table.cell colspan="7" class="text-center py-6">
+                            <flux:table.cell colspan="8" class="text-center py-6">
                                 <flux:text class="text-zinc-400 italic">
-                                    No visitor record available.
+                                    No leave request for this date.
                                 </flux:text>
                             </flux:table.cell>
                         </flux:table.row>
@@ -162,49 +262,24 @@ new class extends Component
                     @if ($this->request)
                         <div class="grid grid-cols-2 gap-6">
                             <div>
-                                <flux:heading>Employee ID</flux:heading>
-                                <flux:text class="mt-2" variant="strong">{{ $this->request->id }}</flux:text>
+                                <flux:heading>Employee Name</flux:heading>
+                                <flux:text class="mt-2" variant="strong">{{ $this->request->employee_name }}</flux:text>
                             </div>
                             <div>
-                                <flux:heading>Employee Name</flux:heading>
-                                <flux:text class="mt-2" variant="strong">{{ $this->request->employee_name ?? '-' }}</flux:text>
+                                <flux:heading>Department</flux:heading>
+                                <flux:text class="mt-2" variant="strong">{{ $this->request->department ?? '-' }}</flux:text>
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-6">
-                            <div>
-                                <flux:heading>Department</flux:heading>
-                                <flux:text class="mt-2" variant="strong">{{ $this->request->department }}</flux:text>
-                            </div>
                             <div>
                                 <flux:heading>Leave Type</flux:heading>
                                 <flux:text class="mt-2" variant="strong">{{ $this->request->leave_type }}</flux:text>
                             </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-6">
                             <div>
-                                <flux:heading>Start Date</flux:heading>
-                                <flux:text class="mt-2" variant="strong">{{ $this->request->date }}</flux:text>
-                            </div>
-                            <div>
-                                <flux:heading>Reason</flux:heading>
-                                <flux:text class="mt-2" variant="strong">{{ $this->request->purpose }}</flux:text>
+                                <flux:heading>Date</flux:heading>
+                                <flux:text class="mt-2" variant="strong">{{ $this->request->formatted_date }}</flux:text>
                             </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-6">
-                            <div>
-                                <flux:heading>Submitted At</flux:heading>
-                                <flux:text class="mt-2" variant="strong">{{ $this->request->created_at }}</flux:text>
-                            </div>
-                            <div>
-                                <flux:heading>Status</flux:heading>
-                                <flux:badge color="blue" size="sm">Approved</flux:badge>
-                            </div>
-                        </div>
-                        
-                        <flux:separator variant="subtle" />
-
-                        <flux:heading size="lg">Leave Details</flux:heading>
-
                         <div class="grid grid-cols-2 gap-6">
                             <div>
                                 <flux:heading>Permitted Time</flux:heading>
@@ -212,8 +287,20 @@ new class extends Component
                             </div>
                             <div>
                                 <flux:heading>Will Return</flux:heading>
-                                <flux:text class="mt-2" variant="strong">{{ $this->request->permitted_end_time ? 'Yes' : 'No' }}</flux:text>
+                                <flux:text class="mt-2" variant="strong">{{ $this->request->will_not_return ? 'No' : 'Yes' }}</flux:text>
                             </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-6">
+                            <div>
+                                <flux:heading>Reason</flux:heading>
+                                <flux:text class="mt-2" variant="strong">{{ $this->request->purpose ?? '-' }}</flux:text>
+                            </div>
+                            @if ($this->request->destination)
+                                <div>
+                                    <flux:heading>Destination</flux:heading>
+                                    <flux:text class="mt-2" variant="strong">{{ $this->request->destination }}</flux:text>
+                                </div>
+                            @endif
                         </div>
 
                         <flux:separator variant="subtle" />
@@ -221,30 +308,27 @@ new class extends Component
                         <flux:heading size="lg">Approval Details</flux:heading>
 
                         <div class="space-y-2">
-                            <div class="flex justify-between items-start bg-gray-400/5 p-4 rounded-xl">
-                                <div variant="strong">
-                                    <flux:text>Section Chief</flux:text>
-                                    <flux:heading class="my-1">Jono</flux:heading>
-                                    <flux:text>11/6/2025 11:00</flux:text>
+                            @forelse ($this->approvements as $approvement)
+                                <div class="flex justify-between items-start bg-gray-400/5 p-4 rounded-xl">
+                                    <div variant="strong">
+                                        <flux:text>{{ $approvement->approver?->position?->name ?? 'Step '.$approvement->step_order }}</flux:text>
+                                        <flux:heading class="my-1">{{ $approvement->approved_by ?? $approvement->approver?->full_name ?? '-' }}</flux:heading>
+                                        <flux:text>{{ $approvement->approved_at ? Carbon::parse($approvement->approved_at)->format('d/m/Y H:i') : '-' }}</flux:text>
+                                    </div>
+                                    <flux:badge
+                                        color="{{ match($approvement->approvement_status) {
+                                            'approved' => 'green',
+                                            'rejected', 'canceled' => 'red',
+                                            default => 'zinc',
+                                        } }}"
+                                        size="sm"
+                                        >
+                                        {{ ucfirst($approvement->approvement_status) }}
+                                    </flux:badge>
                                 </div>
-                                <flux:badge color="green" size="sm">Approved</flux:badge>
-                            </div>
-                            <div class="flex justify-between items-start bg-gray-400/5 p-4 rounded-xl">
-                                <div variant="strong">
-                                    <flux:text>Department Manager</flux:text>
-                                    <flux:heading class="my-1">Saifudin</flux:heading>
-                                    <flux:text>11/6/2025 11:00</flux:text>
-                                </div>
-                                <flux:badge color="green" size="sm">Approved</flux:badge>
-                            </div>
-                            <div class="flex justify-between items-start bg-gray-400/5 p-4 rounded-xl">
-                                <div variant="strong">
-                                    <flux:text>HR Manager</flux:text>
-                                    <flux:heading class="my-1">Yuga Nugraha</flux:heading>
-                                    <flux:text>11/6/2025 11:00</flux:text>
-                                </div>
-                                <flux:badge color="green" size="sm">Approved</flux:badge>
-                            </div>
+                            @empty
+                                <flux:text class="text-zinc-400 italic">Belum ada data approval.</flux:text>
+                            @endforelse
                         </div>
                     @endif
                 </div>
