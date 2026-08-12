@@ -360,6 +360,10 @@ new class extends Component
                             <flux:select.option>Carries</flux:select.option>
                             <flux:select.option>Box</flux:select.option>
                             <flux:select.option>Bucket</flux:select.option>
+                            <flux:select.option>Pallet</flux:select.option>
+                            <flux:select.option>Roll</flux:select.option>
+                            <flux:select.option>Bobbin</flux:select.option>
+                            <flux:select.option>Ikat</flux:select.option>
                         </flux:select>
                     </div>
                     @if($index > 0)
